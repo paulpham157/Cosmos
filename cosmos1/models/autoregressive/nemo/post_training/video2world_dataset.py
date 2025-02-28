@@ -16,16 +16,17 @@
 import json
 
 import torch
+from nemo.collections.llm.gpt.data.mock import MockDataModule
 from torch.utils.data import Dataset
 
 from cosmos1.models.autoregressive.modules.embedding import SinCosPosEmbAxisTE
+from cosmos1.models.autoregressive.nemo.cosmos import CosmosConfig
 
 TOKENIZER_COMPRESSION_FACTOR = [8, 16, 16]
 DATA_RESOLUTION_SUPPORTED = [640, 1024]
 NUM_CONTEXT_FRAMES = 33
 BOV_TOKEN = 64000
 PAD_ID = 64002
-from nemo.collections.llm.gpt.data.mock import MockDataModule
 
 
 class CosmosVideo2WorldDataset(Dataset):
@@ -33,23 +34,11 @@ class CosmosVideo2WorldDataset(Dataset):
         self.data_path = data_path
         self.model_config = model_config
         self.split = split
-        self.abs_pos_emb = self._initialize_abs_pos_emb()
+        self.abs_pos_emb = get_abs_pos_embed(model_config, training_type="text_to_video")
         metadata_file = f"{self.data_path}/metadata.json"
         with open(metadata_file, "r") as f:
             metadata = json.load(f)
         self.metadata = metadata
-
-    def _initialize_abs_pos_emb(self):
-        pos_emb = SinCosPosEmbAxisTE(
-            self.model_config.hidden_size,
-            latent_shape=self.model_config.latent_shape,
-            pad_to_multiple_of=self.model_config.pad_to_multiple_of,
-            device="cpu",
-        )
-        training_type = "text_to_video"
-        abs_pos_emb = pos_emb.forward(training_type=training_type)
-        abs_pos_emb = abs_pos_emb.transpose(0, 1).contiguous()
-        return abs_pos_emb
 
     def __len__(self):
         return self.metadata[f"{self.split}_samples"]
@@ -88,6 +77,18 @@ class CosmosVideo2WorldDataset(Dataset):
 
     def collate_fn(self, batch):
         return self._collate_fn(batch)
+
+
+def get_abs_pos_embed(model_config: CosmosConfig, training_type: str | None = "text_to_video"):
+    pos_emb = SinCosPosEmbAxisTE(
+        model_config.hidden_size,
+        latent_shape=model_config.latent_shape,
+        pad_to_multiple_of=model_config.pad_to_multiple_of,
+        device="cpu",
+    )
+    abs_pos_emb = pos_emb.forward(training_type=training_type)
+    abs_pos_emb = abs_pos_emb.transpose(0, 1).contiguous()
+    return abs_pos_emb
 
 
 class CosmosVideo2WorldDataModule(MockDataModule):

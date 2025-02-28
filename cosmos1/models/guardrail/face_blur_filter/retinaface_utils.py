@@ -15,7 +15,7 @@
 
 import numpy as np
 import torch
-from pytorch_retinaface.utils.nms.py_cpu_nms import py_cpu_nms
+from retinaface.utils.nms.py_cpu_nms import py_cpu_nms
 
 from cosmos1.utils import log
 

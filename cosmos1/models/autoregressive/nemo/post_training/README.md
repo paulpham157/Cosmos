@@ -101,6 +101,8 @@ Before proceeding, ensure all videos are in **RGB format**. Complete the followi
 1. Set the following environment variables:
 
    ```bash
+   pip install --no-cache-dir imageio[ffmpeg] pyav iopath
+
    export HF_TOKEN="<your/HF/access/token>"
    export HF_HOME="<path/to/store/checkpoints>"
 
@@ -144,6 +146,8 @@ Before proceeding, ensure all videos are in **RGB format**. Complete the followi
 1. Set the following environment variables:
 
    ```bash
+   pip install --no-cache-dir imageio[ffmpeg] pyav iopath
+
    export HF_TOKEN="<your/HF/access/token>"
    export HF_HOME="<path/to/store/checkpoints>"
 

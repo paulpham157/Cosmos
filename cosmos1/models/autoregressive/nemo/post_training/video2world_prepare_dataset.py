@@ -17,6 +17,8 @@ import argparse
 import json
 import os
 import random
+import shutil
+from pathlib import Path
 
 import torch
 from einops import rearrange
@@ -111,7 +113,8 @@ def main(args):
     test_jsonl_file_contents = jsonl_file_contents[train_fraction : (train_fraction + test_fraction)]
     val_jsonl_file_contents = jsonl_file_contents[(train_fraction + test_fraction) :]
 
-    from pathlib import Path
+    if os.path.exists(args.output_dir):
+        shutil.rmtree(args.output_dir, ignore_errors=True)
 
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
@@ -127,6 +130,7 @@ def main(args):
 
     with open(f"{args.output_dir}/metadata.json", "w") as f:
         json.dump(metadata, f)
+    return
 
 
 if __name__ == "__main__":

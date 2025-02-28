@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Callable, Dict, Optional, Union
 
 import torch
-import torch.nn.functional as F
 from megatron.core import tensor_parallel
 from megatron.core.fusions.fused_bias_dropout import get_bias_dropout_add
 from megatron.core.inference.model_inference_wrappers.inference_wrapper_config import InferenceWrapperConfig
@@ -42,20 +41,24 @@ from megatron.core.transformer.spec_utils import ModuleSpec, build_module
 from megatron.core.transformer.transformer_config import TransformerConfig
 from megatron.core.transformer.transformer_layer import TransformerLayer, TransformerLayerSubmodules
 from megatron.core.utils import make_viewless_tensor
-from torch import Tensor, nn
+from torch import nn
 
-from cosmos1.models.autoregressive.nemo.cosmos import CosmosConfig, CosmosConfig4B, CosmosModel, RotaryEmbedding3D
+from cosmos1.models.autoregressive.nemo.cosmos import (
+    CosmosConfig,
+    CosmosConfig4B,
+    CosmosConfig12B,
+    CosmosModel,
+    RotaryEmbedding3D,
+)
 from cosmos1.models.autoregressive.nemo.inference.inference_controller import CosmosInferenceWrapper
 from cosmos1.utils import log
 
 if TYPE_CHECKING:
     from nemo.collections.common.tokenizers.tokenizer_spec import TokenizerSpec
 
-from megatron.core import InferenceParams
 from megatron.core.packed_seq_params import PackedSeqParams
 from megatron.core.transformer.transformer_block import TransformerBlock
 from nemo.collections.llm.gpt.model.base import get_batch_on_this_context_parallel_rank
-from nemo.collections.llm.gpt.model.llama import Llama3Config
 from nemo.collections.llm.utils import Config
 from nemo.lightning import OptimizerModule, io
 from nemo.lightning.base import teardown
@@ -64,30 +67,16 @@ from nemo.lightning.base import teardown
 class CosmosTransformerBlock(TransformerBlock):
     def forward(
         self,
-        hidden_states: Tensor,
-        attention_mask: Tensor,
-        context: Tensor = None,
-        context_mask: Tensor = None,
-        rotary_pos_emb: Tensor = None,
-        rotary_pos_cos: Tensor = None,
-        rotary_pos_sin: Tensor = None,
-        attention_bias: Tensor = None,
-        inference_params: InferenceParams = None,
+        *args,
         packed_seq_params: PackedSeqParams = None,
         extra_positional_embeddings=None,
+        **kwargs,
     ):
         packed_seq_params = {"abs_pos_embed": extra_positional_embeddings}
         return super().forward(
-            hidden_states,
-            attention_mask,
-            context,
-            context_mask,
-            rotary_pos_emb,
-            rotary_pos_cos,
-            rotary_pos_sin,
-            attention_bias,
-            inference_params,
-            packed_seq_params,
+            *args,
+            packed_seq_params=packed_seq_params,
+            **kwargs,
         )
 
 
@@ -361,7 +350,7 @@ def cosmos_data_step(dataloader_iter) -> Dict[str, torch.Tensor]:
     if "cu_seqlens" in _batch:
         raise ValueError("Packed sequence cu_seqlens not supported")
 
-    required_device_keys.update(("context", "abs_pos_embed"))
+    required_device_keys.update(("context", "abs_pos_embed", "action"))
     if parallel_state.is_pipeline_first_stage():
         required_device_keys.update(("tokens", "position_ids"))
     if parallel_state.is_pipeline_last_stage():
@@ -398,30 +387,19 @@ def cosmos_forward_step(model, batch) -> torch.Tensor:
 
 
 @dataclass
-class CosmosConfigVideo2World5B(Llama3Config):
-    qk_layernorm: bool = True
-    rope_dim: str = "3D"
+class CosmosVideo2WorldConfig:
     vocab_size: int = 64064
     output_layer_vocab_size: int = 64000
-    activation_func = F.silu
-    rotary_base: int = 500_000
     seq_length: int = 12864
-    num_layers: int = 16
-    hidden_size: int = 4096
-    ffn_hidden_size: int = 14336
-    num_attention_heads: int = 32
-    num_query_groups: int = 8
-    layernorm_epsilon: float = 1e-5
-    use_cpu_initialization: bool = True
-    make_vocab_size_divisible_by: int = 64
-    kv_channels: int = 128
-    crossattn_emb_size: int = 1024
     latent_shape = [5, 40, 64]
     pad_to_multiple_of = 64
     forward_step_fn: Callable = cosmos_forward_step
     transformer_layer_spec = get_cosmos_video2world_spec()
     data_step_fn: Callable = cosmos_data_step
     attention_backend: AttnBackend = AttnBackend.flash
+    crossattn_emb_size: int = 1024
+    kv_channels: int = 128
+    training_type: str | None = "text_to_video"
 
     def configure_model(self, tokenizer) -> "MCoreGPTModel":
         self.transformer_layer_spec = get_cosmos_video2world_spec()
@@ -429,7 +407,7 @@ class CosmosConfigVideo2World5B(Llama3Config):
         if self.rope_dim == "3D":
             model.rotary_pos_emb = RotaryEmbedding3D(
                 seq_len=self.seq_length,
-                training_type="text_to_video",
+                training_type=self.training_type,
                 pad_to_multiple_of=self.pad_to_multiple_of,
                 kv_channels=self.kv_channels,
                 max_position_embeddings=self.seq_length,
@@ -467,78 +445,13 @@ class CosmosConfigVideo2World5B(Llama3Config):
 
 
 @dataclass
-class CosmosConfigVideo2World13B(Llama3Config):
-    qk_layernorm: bool = True
-    rope_dim: str = "3D"
-    vocab_size: int = 64064
-    output_layer_vocab_size: int = 64000
-    activation_func = F.silu
-    rotary_base: int = 500_000
-    seq_length: int = 12864
-    num_layers: int = 40
-    hidden_size: int = 5120
-    ffn_hidden_size: int = 14336
-    num_attention_heads: int = 32
-    num_query_groups: int = 8
-    layernorm_epsilon: float = 1e-5
-    use_cpu_initialization: bool = True
+class CosmosConfigVideo2World5B(CosmosVideo2WorldConfig, CosmosConfig4B):
+    make_vocab_size_divisible_by: int = 64
+
+
+@dataclass
+class CosmosConfigVideo2World13B(CosmosVideo2WorldConfig, CosmosConfig12B):
     make_vocab_size_divisible_by: int = 128
-    kv_channels: int = 128
-    crossattn_emb_size: int = 1024
-    original_latent_shape = [3, 40, 64]
-    apply_yarn: bool = True
-    yarn_beta_fast: int = 4
-    yarn_beta_slow: int = 1
-    yarn_scale: int = 2
-    original_seq_len = 8192
-    latent_shape = [5, 40, 64]
-    pad_to_multiple_of = 64
-    forward_step_fn: Callable = cosmos_forward_step
-    transformer_layer_spec = get_cosmos_video2world_spec()
-    data_step_fn: Callable = cosmos_data_step
-    attention_backend: AttnBackend = AttnBackend.flash
-
-    def configure_model(self, tokenizer) -> "MCoreGPTModel":
-        self.transformer_layer_spec = get_cosmos_video2world_spec()
-        model = super().configure_model(tokenizer)
-        if self.rope_dim == "3D":
-            model.rotary_pos_emb = RotaryEmbedding3D(
-                seq_len=self.seq_length,
-                training_type="text_to_video",
-                pad_to_multiple_of=self.pad_to_multiple_of,
-                kv_channels=self.kv_channels,
-                max_position_embeddings=self.seq_length,
-                original_max_position_embeddings=self.original_seq_len if hasattr(self, "original_seq_len") else None,
-                rotary_base=self.rotary_base,
-                apply_yarn=True if hasattr(self, "apply_yarn") else False,
-                scale=self.yarn_scale if hasattr(self, "yarn_scale") else None,
-                extrapolation_factor=1,
-                attn_factor=1,
-                beta_fast=self.yarn_beta_fast if hasattr(self, "yarn_beta_fast") else 32,
-                beta_slow=self.yarn_beta_slow if hasattr(self, "yarn_beta_slow") else 1,
-                latent_shape=self.latent_shape,
-                original_latent_shape=self.original_latent_shape if hasattr(self, "original_latent_shape") else None,
-            )
-        model.output_layer = tensor_parallel.ColumnParallelLinear(
-            self.hidden_size,
-            self.output_layer_vocab_size,
-            config=self,
-            init_method=self.init_method,
-            bias=False,
-            skip_bias_add=False,
-            gather_output=False,
-            skip_weight_param_allocation=False,
-            embedding_activation_buffer=None,
-            grad_output_buffer=None,
-        )
-
-        model.decoder = CosmosTransformerBlock(
-            config=self,
-            spec=self.transformer_layer_spec,
-            pre_process=model.pre_process,
-            post_process=model.post_process,
-        )
-        return model
 
 
 class CosmosVideo2WorldModel(CosmosModel):
@@ -549,7 +462,9 @@ class CosmosVideo2WorldModel(CosmosModel):
         tokenizer: Optional["TokenizerSpec"] = None,
         model_transform: Optional[Callable[[nn.Module], nn.Module]] = None,
     ):
-        super().__init__(config or CosmosConfig4B(), optim=optim, tokenizer=tokenizer, model_transform=model_transform)
+        super().__init__(
+            config or CosmosConfigVideo2World5B(), optim=optim, tokenizer=tokenizer, model_transform=model_transform
+        )
         self.config = config
 
     def get_inference_wrapper(self, params_dtype, inference_batch_times_seqlen_threshold) -> torch.Tensor:

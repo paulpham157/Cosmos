@@ -106,9 +106,6 @@ Complete the following steps to run inference on the 4B model.
    cd /workspace/Cosmos
    git lfs pull $INPUT_DATA
 
-   NVTE_FLASH_ATTN=1 \
-   NVTE_FUSED_ATTN=0 \
-   NVTE_UNFUSED_ATTN=0 \
    torchrun --nproc-per-node 1 cosmos1/models/autoregressive/nemo/inference/general.py \
    --input_image_or_video_path $INPUT_DATA \
    --video_save_name "Cosmos-1.0-Autoregressive-4B.mp4"  \
@@ -138,14 +135,10 @@ Complete the following steps to run inference on the 5B model.
    cd /workspace/Cosmos
    git lfs pull $INPUT_DATA
 
-   NVTE_FLASH_ATTN=1 \
-   NVTE_FUSED_ATTN=0 \
-   NVTE_UNFUSED_ATTN=0 \
    python3 cosmos1/models/autoregressive/nemo/inference/video2world.py \
       --input_type video \
       --input_image_or_video_path 'cosmos1/models/autoregressive/assets/v1p0/input.mp4' \
       --prompt "A video recorded from a moving vehicle's perspective, capturing roads, buildings, landscapes, and changing weather and lighting conditions." \
-      --disable_diffusion_decoder \
       --ar_model_dir nvidia/Cosmos-1.0-Autoregressive-5B-Video2World
    ```
 
@@ -160,6 +153,8 @@ Complete the following steps to generate a new output video using a post-trained
 1. Set the following environment variables:
 
    ```bash
+   pip install --no-cache-dir imageio[ffmpeg] pyav iopath better_profanity peft git+https://github.com/NVlabs/Pytorch_Retinaface.git@b843f45
+
    export HF_TOKEN="<your/HF/access/token>"
    export HF_HOME="<path/to/store/checkpoints>"
 
@@ -178,9 +173,6 @@ Complete the following steps to generate a new output video using a post-trained
    git lfs pull $INPUT_DATA
 
    # change --ar_model_dir to a post-trained checkpoint under ./logs/default/checkpoints/
-   NVTE_FLASH_ATTN=1 \
-   NVTE_FUSED_ATTN=0 \
-   NVTE_UNFUSED_ATTN=0 \
    torchrun --nproc-per-node 1 cosmos1/models/autoregressive/nemo/inference/general.py \
    --input_image_or_video_path $INPUT_DATA \
    --video_save_name "Cosmos-1.0-Autoregressive-4B.mp4" \
@@ -194,6 +186,8 @@ Complete the following steps to generate a new output video using a post-trained
 1. Set the following environment variables:
 
    ```bash
+   pip install --no-cache-dir imageio[ffmpeg] pyav iopath better_profanity peft git+https://github.com/NVlabs/Pytorch_Retinaface.git@b843f45
+
    export HF_TOKEN="<your/HF/access/token>"
    export HF_HOME="<path/to/store/checkpoints>"
 
@@ -213,9 +207,6 @@ Complete the following steps to generate a new output video using a post-trained
    git lfs pull $INPUT_DATA
 
    # change --ar_model_dir to a post-trained checkpoint under ./logs/default/checkpoints/
-   NVTE_FLASH_ATTN=1 \
-   NVTE_FUSED_ATTN=0 \
-   NVTE_UNFUSED_ATTN=0 \
    python3 cosmos1/models/autoregressive/nemo/inference/video2world.py \
       --input_image_or_video_path $INPUT_DATA \
       --video_save_name "Cosmos-1.0-Autoregressive-5B-Video2World.mp4" \

@@ -467,7 +467,7 @@ class SinCosPosEmbAxisTE(torch.nn.Module):
 
     def forward(
         self,
-        training_type: str = None,
+        training_type: str | None = None,
     ) -> torch.Tensor:
         T, H, W = self.latent_shape
         emb = torch.cat(

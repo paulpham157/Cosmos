@@ -18,9 +18,9 @@ import os
 
 import numpy as np
 import torch
-from pytorch_retinaface.data import cfg_re50
-from pytorch_retinaface.layers.functions.prior_box import PriorBox
-from pytorch_retinaface.models.retinaface import RetinaFace
+from retinaface.data import cfg_re50
+from retinaface.layers.functions.prior_box import PriorBox
+from retinaface.models.retinaface import RetinaFace
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 

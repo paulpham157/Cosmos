@@ -73,6 +73,31 @@ def get_header(ext: str = "py", old: str | bool = False) -> list[str]:
     return header
 
 
+def get_header_ea(ext: str = "py", old: str | bool = False) -> list[str]:
+    # This is the raw header.
+    # The early-access software is governed by the NVIDIA Evaluation License Agreement – EA Cosmos Code (v. Feb 2025).
+    # The license reference will be the finalized version of the license linked above.
+    header = [
+        "The early-access software is governed by the NVIDIA Evaluation License Agreement – EA Cosmos Code (v. Feb 2025).",
+        "The license reference will be the finalized version of the license linked above.",
+    ]
+    # Reformat according to different file extensions.
+    if ext == ".py" and old:
+        if old == "single":
+            header = ["'''"] + header + ["'''"]
+        elif old == "double":
+            header = ['"""'] + header + ['"""']
+        else:
+            raise NotImplementedError
+    elif ext in (".py", ".yaml"):
+        header = [("# " + line if line else "#") for line in header]
+    elif ext in (".c", ".cpp", ".cu", ".h", ".cuh"):
+        header = ["/*"] + [(" * " + line if line else " *") for line in header] + [" */"]
+    else:
+        raise NotImplementedError
+    return header
+
+
 def apply_file(file: str, results: dict[str, int], fix: bool = False) -> None:
     if file.endswith("__init__.py"):
         return
@@ -81,19 +106,14 @@ def apply_file(file: str, results: dict[str, int], fix: bool = False) -> None:
     content = open(file).read().splitlines()
     # Check if cosmos header (with a blank newline) is properly embedded.
     header = get_header(ext=ext)
+    header_ea = get_header_ea(ext=ext)
     if fix:
         # If header passes format check, then just exit
         if _check_header(content, header):
             return
+        if _check_header(content, header_ea):
+            return
         print(f"fixing: {file}")
-        # Remove old header if exists.
-        if ext == ".py":
-            for header_old in [
-                get_header(ext=ext, old="single"),
-                get_header(ext=ext, old="double"),
-            ]:
-                if content[: len(header_old)] == header_old:
-                    content = content[len(header_old) :]
         # Clean up leading blank lines.
         while len(content) > 0 and not content[0]:
             content.pop(0)
@@ -104,7 +124,7 @@ def apply_file(file: str, results: dict[str, int], fix: bool = False) -> None:
             for line in content:
                 file_obj.write(line + "\n")
     else:
-        if not _check_header(content, header):
+        if not _check_header(content, header) and not _check_header(content, header_ea):
             bad_header = colorize("BAD HEADER", color="red", bold=True)
             print(f"{bad_header}: {file}")
             results[file] = 1

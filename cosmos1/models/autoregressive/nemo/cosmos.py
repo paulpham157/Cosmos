@@ -49,7 +49,7 @@ class RotaryEmbedding3D(RotaryEmbedding):
         self,
         seq_len: int,
         kv_channels: int,
-        training_type: str = None,
+        training_type: str | None = None,
         rotary_base: int = 10000,
         use_cpu_initialization: bool = False,
         latent_shape=[5, 40, 64],

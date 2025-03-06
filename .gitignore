@@ -39,7 +39,6 @@ checkpoints/*
 *.dll
 *.swp
 *.vscode
-*.ipynb
 *.DS_Store
 *.pyc
 *Thumbs.db

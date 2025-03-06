@@ -144,29 +144,20 @@ class CausalHybridUpsample3d(nn.Module):
         **kwargs,
     ) -> None:
         super().__init__()
-        self.conv1 = CausalConv3d(
-            in_channels,
-            in_channels,
-            kernel_size=(3, 1, 1),
-            stride=1,
-            time_stride=1,
-            padding=0,
+        self.conv1 = (
+            CausalConv3d(in_channels, in_channels, kernel_size=(3, 1, 1), stride=1, time_stride=1, padding=0)
+            if temporal_up
+            else nn.Identity()
         )
-        self.conv2 = CausalConv3d(
-            in_channels,
-            in_channels,
-            kernel_size=(1, 3, 3),
-            stride=1,
-            time_stride=1,
-            padding=1,
+        self.conv2 = (
+            CausalConv3d(in_channels, in_channels, kernel_size=(1, 3, 3), stride=1, time_stride=1, padding=1)
+            if spatial_up
+            else nn.Identity()
         )
-        self.conv3 = CausalConv3d(
-            in_channels,
-            in_channels,
-            kernel_size=1,
-            stride=1,
-            time_stride=1,
-            padding=0,
+        self.conv3 = (
+            CausalConv3d(in_channels, in_channels, kernel_size=1, stride=1, time_stride=1, padding=0)
+            if spatial_up or temporal_up
+            else nn.Identity()
         )
         self.spatial_up = spatial_up
         self.temporal_up = temporal_up
@@ -203,30 +194,22 @@ class CausalHybridDownsample3d(nn.Module):
         **kwargs,
     ) -> None:
         super().__init__()
-        self.conv1 = CausalConv3d(
-            in_channels,
-            in_channels,
-            kernel_size=(1, 3, 3),
-            stride=2,
-            time_stride=1,
-            padding=0,
+        self.conv1 = (
+            CausalConv3d(in_channels, in_channels, kernel_size=(1, 3, 3), stride=2, time_stride=1, padding=0)
+            if spatial_down
+            else nn.Identity()
         )
-        self.conv2 = CausalConv3d(
-            in_channels,
-            in_channels,
-            kernel_size=(3, 1, 1),
-            stride=1,
-            time_stride=2,
-            padding=0,
+        self.conv2 = (
+            CausalConv3d(in_channels, in_channels, kernel_size=(3, 1, 1), stride=1, time_stride=2, padding=0)
+            if temporal_down
+            else nn.Identity()
         )
-        self.conv3 = CausalConv3d(
-            in_channels,
-            in_channels,
-            kernel_size=1,
-            stride=1,
-            time_stride=1,
-            padding=0,
+        self.conv3 = (
+            CausalConv3d(in_channels, in_channels, kernel_size=1, stride=1, time_stride=1, padding=0)
+            if spatial_down or temporal_down
+            else nn.Identity()
         )
+
         self.spatial_down = spatial_down
         self.temporal_down = temporal_down
 

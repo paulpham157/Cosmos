@@ -34,9 +34,8 @@ from cosmos1.models.diffusion.inference.inference_utils import (
 from cosmos1.utils import log
 from cosmos1.utils.config_helper import get_config_module, override
 
-TOKENIZER_COMPRESSION_FACTOR = [8, 16, 16]
-DATA_RESOLUTION_SUPPORTED = [640, 1024]
-NUM_CONTEXT_FRAMES = 33
+DATA_RESOLUTION_DEFAULT = [640, 1024]
+NUM_CONTEXT_FRAMES_DEFAULT = 33
 
 
 def resize_input(video: torch.Tensor, resolution: list[int]):
@@ -60,12 +59,15 @@ def resize_input(video: torch.Tensor, resolution: list[int]):
     return video_cropped
 
 
-def read_input_videos(input_video: str) -> torch.tensor:
+def read_input_videos(
+    input_video: str, data_resolution: list[int] = DATA_RESOLUTION_DEFAULT, num_frames: int = NUM_CONTEXT_FRAMES_DEFAULT
+) -> torch.tensor:
     """Utility to read the input video and return a torch tensor
 
     Args:
         input_video (str): A path to .mp4 file
         data_resolution (list, optional): The . Defaults to [640, 1024].
+        num_frames (int, optional): The number of frames to read.
 
     Returns:
         A torch tensor of the video
@@ -73,21 +75,20 @@ def read_input_videos(input_video: str) -> torch.tensor:
     video, _, _ = torchvision.io.read_video(input_video)
     video = video.float() / 255.0
     video = video * 2 - 1
-
-    if video.shape[0] > NUM_CONTEXT_FRAMES:
-        video = video[0:NUM_CONTEXT_FRAMES, :, :, :]
+    if video.shape[0] > num_frames:
+        video = video[0:num_frames, :, :, :]
     else:
-        log.info(f"Video doesn't have {NUM_CONTEXT_FRAMES} frames. Padding the video with the last frame.")
+        log.info(f"Video doesn't have {num_frames} frames. Padding the video with the last frame.")
         # Pad the video
         nframes_in_video = video.shape[0]
         video = torch.cat(
-            (video, video[-1, :, :, :].unsqueeze(0).repeat(NUM_CONTEXT_FRAMES - nframes_in_video, 1, 1, 1)),
+            (video, video[-1, :, :, :].unsqueeze(0).repeat(num_frames - nframes_in_video, 1, 1, 1)),
             dim=0,
         )
 
-    video = video[0:NUM_CONTEXT_FRAMES, :, :, :]
+    video = video[0:num_frames, :, :, :]
     video = video.permute(0, 3, 1, 2)
-    video = resize_input(video, DATA_RESOLUTION_SUPPORTED)
+    video = resize_input(video, data_resolution)
     return video.transpose(0, 1).unsqueeze(0)
 
 

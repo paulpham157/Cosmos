@@ -41,11 +41,8 @@ from cosmos1.utils import log
 
 torch._C._jit_set_texpr_fuser_enabled(False)
 
-TOKENIZER_COMPRESSION_FACTOR = [8, 16, 16]
-NUM_CONTEXT_FRAMES = 33
-NUM_INPUT_FRAMES_VIDEO = 9
 LATENT_SHAPE = [5, 40, 64]
-DATA_RESOLUTION = [640, 1024]
+NUM_INPUT_FRAMES_VIDEO = 9
 
 
 class CosmosMCoreTokenizerWrappper:
@@ -67,32 +64,39 @@ class CosmosMCoreTokenizerWrappper:
 
 def main(args):
     num_input_frames = 1 if args.input_type == "image" else NUM_INPUT_FRAMES_VIDEO
+    torch.distributed.init_process_group(backend="nccl")
+    TOKENIZER_COMPRESSION_FACTOR = list(map(int, args.tokenizer_compression_factor.split(",")))
+    NUM_CONTEXT_FRAMES = args.num_context_frames
 
     vision_input_dict = load_vision_input(
         input_type=args.input_type,
         batch_input_path=None,
         input_image_or_video_path=args.input_image_or_video_path,
-        data_resolution=DATA_RESOLUTION,
+        data_resolution=[args.height, args.width],
         num_input_frames=num_input_frames,
+        num_total_frames=args.num_context_frames,
     )
 
     vision_input = list(vision_input_dict.values())[0].cuda()
+    vision_input = vision_input[:, :, :NUM_CONTEXT_FRAMES, :, :]
 
     T, H, W = LATENT_SHAPE
     latent_context_t_size = 1 if args.input_type == "image" else 2
     num_tokens_to_generate = int(np.prod([T - latent_context_t_size, H, W]))
 
     # Encode and Tokenize
-    if args.encoder_path == "nvidia/Cosmos-1.0-Tokenizer-DV8x16x16":
+    if args.encoder_path.startswith("nvidia/"):
         args.encoder_path = os.path.join(snapshot_download(args.encoder_path), "encoder.jit")
-    if args.decoder_path == "nvidia/Cosmos-1.0-Tokenizer-DV8x16x16":
+    if args.decoder_path.startswith("nvidia/"):
         args.decoder_path = os.path.join(snapshot_download(args.decoder_path), "decoder.jit")
+
     video_tokenizer = DiscreteVideoFSQJITTokenizer(
         enc_fp=args.encoder_path,
         dec_fp=args.decoder_path,
         name="discrete_video_fsq",
         pixel_chunk_duration=NUM_CONTEXT_FRAMES,
         latent_chunk_duration=T,
+        compression_ratio=TOKENIZER_COMPRESSION_FACTOR,
     ).cuda()
 
     quantized_out, _ = video_tokenizer.encode(vision_input, pixel_chunk_duration=None)
@@ -106,7 +110,7 @@ def main(args):
     model: io.TrainerContext = io.load_context(path=ckpt_to_context_subdir(args.ar_model_dir), subpath="model")
 
     strategy = nl.MegatronStrategy(
-        tensor_model_parallel_size=1,
+        tensor_model_parallel_size=args.tensor_model_parallel_size,
         pipeline_model_parallel_size=1,
         context_parallel_size=1,
         sequence_parallel=False,
@@ -116,7 +120,7 @@ def main(args):
 
     trainer = nl.Trainer(
         accelerator="gpu",
-        devices=1,
+        devices=torch.cuda.device_count(),
         num_nodes=1,
         strategy=strategy,
         num_sanity_val_steps=0,
@@ -152,6 +156,7 @@ def main(args):
     )
 
     result = list(results)[0]
+
     prompt_tokens = torch.tensor(result.prompt_tokens).cuda()
     prompt_tokens[prompt_tokens == -1] = result.generated_tokens
 
@@ -208,6 +213,10 @@ def main(args):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
+    parser.add_argument("--width", required=True, type=int, help="Width of the input videos")
+    parser.add_argument("--height", required=True, type=int, help="Height of the input videos")
+    parser.add_argument("--num_context_frames", required=True, type=int, help="Number of context frames")
+    parser.add_argument("--tokenizer_compression_factor", required=True, type=str, help="Tokenizer compression factor")
     parser.add_argument("--input_type", type=str, default="video", help="Type of input", choices=["image", "video"])
     parser.add_argument(
         "--input_image_or_video_path", required=True, type=str, help="The path to the input video to run inference"
@@ -215,6 +224,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--video_save_name", default="./nemo_generated_video.mp4", type=str, help="The path to generated video"
     )
+    parser.add_argument("--num_input_frames", default=9, type=int, help="The number of input frames")
     parser.add_argument(
         "--ar_model_dir",
         default="nvidia/Cosmos-1.0-Autoregressive-4B",
@@ -233,6 +243,9 @@ if __name__ == "__main__":
     parser.add_argument("--top_p", default=0.8, type=float, help="The top_p inference parameter ")
     parser.add_argument("--temperature", default=1, type=int, help="Sampling temperature")
     parser.add_argument("--disable_diffusion_decoder", action="store_true", help="Disable diffusion decoder")
+    parser.add_argument(
+        "--tensor_model_parallel_size", default=torch.cuda.device_count(), type=int, help="The number of GPUs to use"
+    )
 
     args = parser.parse_args()
 

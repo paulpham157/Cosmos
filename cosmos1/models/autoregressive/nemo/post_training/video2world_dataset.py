@@ -22,12 +22,6 @@ from torch.utils.data import Dataset
 from cosmos1.models.autoregressive.modules.embedding import SinCosPosEmbAxisTE
 from cosmos1.models.autoregressive.nemo.cosmos import CosmosConfig
 
-TOKENIZER_COMPRESSION_FACTOR = [8, 16, 16]
-DATA_RESOLUTION_SUPPORTED = [640, 1024]
-NUM_CONTEXT_FRAMES = 33
-BOV_TOKEN = 64000
-PAD_ID = 64002
-
 
 class CosmosVideo2WorldDataset(Dataset):
     def __init__(self, data_path, model_config, split="train"):

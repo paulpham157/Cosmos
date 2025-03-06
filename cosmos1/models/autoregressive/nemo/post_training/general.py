@@ -34,16 +34,27 @@ def main(args):
     elif "12B" in args.model_path:
         config = CosmosConfig12B()
     else:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     if args.model_path in ["nvidia/Cosmos-1.0-Autoregressive-4B", "nvidia/Cosmos-1.0-Autoregressive-12B"]:
         args.model_path = os.path.join(snapshot_download(args.model_path, allow_patterns=["nemo/*"]), "nemo")
 
     model = CosmosModel(config)
 
+    valid_subfolders = []
+    if os.path.exists(os.path.join(args.data_path, ".bin")) and os.path.exists(os.path.join(args.data_path, ".idx")):
+        valid_subfolders.append(args.data_path + "/")
+    else:
+        for subfolder in sorted(os.listdir(args.data_path)):
+            if not os.path.exists(os.path.join(args.data_path, subfolder, ".bin")) or not os.path.exists(
+                os.path.join(args.data_path, subfolder, ".idx")
+            ):
+                continue
+            valid_subfolders.append(os.path.join(args.data_path, subfolder) + "/")
+
     data_module = llm.PreTrainingDataModule(
-        paths=[args.data_path],
-        seq_length=12800,
+        paths=valid_subfolders,
+        seq_length=5 * 40 * 64,
         global_batch_size=args.global_batch_size,
         micro_batch_size=args.micro_batch_size,
         tokenizer=None,

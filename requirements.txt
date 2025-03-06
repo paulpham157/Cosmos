@@ -27,7 +27,7 @@ mediapy
 nltk
 peft
 pillow
-retinaface-py
+pytorch_retinaface @ git+https://github.com/NVlabs/Pytorch_Retinaface.git@b843f45
 sentencepiece
 termcolor
 transformers==4.48.0

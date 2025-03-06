@@ -135,7 +135,7 @@ Complete the following steps to run inference on the 5B model.
    cd /workspace/Cosmos
    git lfs pull $INPUT_DATA
 
-   python3 cosmos1/models/autoregressive/nemo/inference/video2world.py \
+   torchrun --nproc-per-node=1 cosmos1/models/autoregressive/nemo/inference/video2world.py \
       --input_type video \
       --input_image_or_video_path 'cosmos1/models/autoregressive/assets/v1p0/input.mp4' \
       --prompt "A video recorded from a moving vehicle's perspective, capturing roads, buildings, landscapes, and changing weather and lighting conditions." \
@@ -207,7 +207,7 @@ Complete the following steps to generate a new output video using a post-trained
    git lfs pull $INPUT_DATA
 
    # change --ar_model_dir to a post-trained checkpoint under ./logs/default/checkpoints/
-   python3 cosmos1/models/autoregressive/nemo/inference/video2world.py \
+   torchrun --nproc-per-node=1 cosmos1/models/autoregressive/nemo/inference/video2world.py \
       --input_image_or_video_path $INPUT_DATA \
       --video_save_name "Cosmos-1.0-Autoregressive-5B-Video2World.mp4" \
       --prompt "A video recorded from a moving vehicle's perspective, capturing roads, buildings, landscapes, and changing weather and lighting conditions." \

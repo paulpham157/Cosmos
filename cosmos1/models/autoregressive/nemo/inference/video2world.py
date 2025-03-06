@@ -35,17 +35,12 @@ from cosmos1.models.autoregressive.nemo.utils import run_diffusion_decoder_model
 from cosmos1.models.autoregressive.tokenizer.discrete_video import DiscreteVideoFSQJITTokenizer
 from cosmos1.models.autoregressive.utils.inference import load_vision_input
 from cosmos1.models.common.t5_text_encoder import CosmosT5TextEncoder
-from cosmos1.models.guardrail.common import presets as guardrail_presets
 from cosmos1.utils import log
 
 torch._C._jit_set_texpr_fuser_enabled(False)
 
-TOKENIZER_COMPRESSION_FACTOR = [8, 16, 16]
-NUM_CONTEXT_FRAMES = 33
 NUM_INPUT_FRAMES_VIDEO = 9
 LATENT_SHAPE = [5, 40, 64]
-DATA_RESOLUTION = [640, 1024]
-
 
 BOV_TOKEN = 64000
 PAD_ID = 64002
@@ -81,13 +76,14 @@ class CosmosMCoreTokenizerWrappper:
 
 def main(args):
     num_input_frames = 1 if args.input_type == "image" else NUM_INPUT_FRAMES_VIDEO
-
+    data_resolution = [args.height, args.width]
     vision_input_dict = load_vision_input(
         input_type=args.input_type,
         batch_input_path=None,
         input_image_or_video_path=args.input_image_or_video_path,
-        data_resolution=DATA_RESOLUTION,
+        data_resolution=data_resolution,
         num_input_frames=num_input_frames,
+        num_total_frames=args.num_context_frames,
     )
 
     vision_input = list(vision_input_dict.values())[0].cuda()
@@ -97,17 +93,20 @@ def main(args):
     num_tokens_to_generate = int(np.prod([T - latent_context_t_size, H, W]))
 
     # Encode and Tokenize
-    if args.encoder_path == "nvidia/Cosmos-1.0-Tokenizer-DV8x16x16":
+    if args.encoder_path.startswith("nvidia/"):
         args.encoder_path = os.path.join(snapshot_download(args.encoder_path), "encoder.jit")
-    if args.decoder_path == "nvidia/Cosmos-1.0-Tokenizer-DV8x16x16":
+    if args.decoder_path.startswith("nvidia/"):
         args.decoder_path = os.path.join(snapshot_download(args.decoder_path), "decoder.jit")
+    num_context_frames = args.num_context_frames
+    tokenizer_compression_factor = list(map(int, args.tokenizer_compression_factor.split(",")))
 
     video_tokenizer = DiscreteVideoFSQJITTokenizer(
         enc_fp=args.encoder_path,
         dec_fp=args.decoder_path,
         name="discrete_video_fsq",
-        pixel_chunk_duration=NUM_CONTEXT_FRAMES,
+        pixel_chunk_duration=num_context_frames,
         latent_chunk_duration=T,
+        compression_ratio=tokenizer_compression_factor,
     ).cuda()
 
     quantized_out, _ = video_tokenizer.encode(vision_input, pixel_chunk_duration=None)
@@ -228,6 +227,12 @@ def main(args):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--input_type", type=str, default="video", help="Type of input", choices=["image", "video"])
+    parser.add_argument("--num_context_frames", type=int, default=33, help="Number of context frames")
+    parser.add_argument("--width", type=int, default=1024, help="Width of the video")
+    parser.add_argument(
+        "--tokenizer_compression_factor", type=str, default="8,16,16", help="Tokenizer compression factor"
+    )
+    parser.add_argument("--height", type=int, default=640, help="Height of the video")
     parser.add_argument(
         "--input_image_or_video_path", required=True, type=str, help="The path to the input video to run inference"
     )

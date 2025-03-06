@@ -28,9 +28,6 @@ from cosmos1.models.autoregressive.nemo.utils import read_input_videos
 from cosmos1.models.autoregressive.tokenizer.discrete_video import DiscreteVideoFSQJITTokenizer
 from cosmos1.models.common.t5_text_encoder import CosmosT5TextEncoder
 
-TOKENIZER_COMPRESSION_FACTOR = [8, 16, 16]
-DATA_RESOLUTION_SUPPORTED = [640, 1024]
-NUM_CONTEXT_FRAMES = 33
 BOV_TOKEN = 64000
 PAD_ID = 64002
 
@@ -40,13 +37,13 @@ def _get_text_prompt_embeddings(prompt, text_encoder):
     return prompt_embedding.squeeze()
 
 
-def _get_video_tokens(filepath, video_tokenizer):
-    input_video = read_input_videos(filepath).cuda()
+def _get_video_tokens(filepath, video_tokenizer, data_resolution, num_frames, tokenizer_compression_factor):
+    input_video = read_input_videos(filepath, data_resolution, num_frames).cuda()
     batch_size, channels, frames, height, width = input_video.shape
     latent_shape = (
-        (frames - 1) // TOKENIZER_COMPRESSION_FACTOR[0] + 1,
-        height // TOKENIZER_COMPRESSION_FACTOR[1],
-        width // TOKENIZER_COMPRESSION_FACTOR[2],
+        (frames - 1) // tokenizer_compression_factor[0] + 1,
+        height // tokenizer_compression_factor[1],
+        width // tokenizer_compression_factor[2],
     )
     T, H, W = latent_shape
     video_tokenizer.latent_chunk_duration = T
@@ -60,16 +57,22 @@ def _get_video_tokens(filepath, video_tokenizer):
 def main(args):
     text_encoder = CosmosT5TextEncoder().cuda()
 
-    if args.encoder_path == "nvidia/Cosmos-1.0-Tokenizer-DV8x16x16":
+    if args.encoder_path.startswith("nvidia/"):
         args.encoder_path = os.path.join(snapshot_download(args.encoder_path), "encoder.jit")
-    if args.decoder_path == "nvidia/Cosmos-1.0-Tokenizer-DV8x16x16":
+    if args.decoder_path.startswith("nvidia/"):
         args.decoder_path = os.path.join(snapshot_download(args.decoder_path), "decoder.jit")
+
+    tokenizer_compression_factor = list(map(int, args.tokenizer_compression_factor.split(",")))
+    assert len(tokenizer_compression_factor) == 3, "Tokenizer compression factor must be a tuple of 3 integers"
+
+    data_resolution = [args.height, args.width]
+    num_frames = args.num_context_frames
 
     video_tokenizer = DiscreteVideoFSQJITTokenizer(
         enc_fp=args.encoder_path,
         dec_fp=args.decoder_path,
         name="discrete_video_fsq",
-        pixel_chunk_duration=NUM_CONTEXT_FRAMES,
+        pixel_chunk_duration=num_frames,
     ).cuda()
 
     def save_tensors(jsonl_contents, split):
@@ -86,7 +89,9 @@ def main(args):
             video_filename = json_data["visual_input"]
             prompt = json_data["prompt"]
             prompt_embedding = _get_text_prompt_embeddings(prompt, text_encoder)
-            video_tokens = _get_video_tokens(video_filename, video_tokenizer)
+            video_tokens = _get_video_tokens(
+                video_filename, video_tokenizer, data_resolution, num_frames, tokenizer_compression_factor
+            )
 
             torch.save(prompt_embedding, f"{args.output_dir}/{split}_prompt_{idx}.pt")
             torch.save(video_tokens, f"{args.output_dir}/{split}_video_{idx}.pt")
@@ -135,6 +140,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process some configurations.")
+    parser.add_argument("--width", default=1024, type=int, help="The width of the video")
+    parser.add_argument("--height", default=640, type=int, help="The height of the video")
+    parser.add_argument("--num_context_frames", default=33, type=int, help="The number of frames in the video")
+    parser.add_argument(
+        "--tokenizer_compression_factor", default="8,16,16", type=str, help="The compression factor of the tokenizer"
+    )
     parser.add_argument(
         "--input_jsonl",
         required=True,

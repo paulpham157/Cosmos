@@ -31,7 +31,7 @@ from cosmos1.utils import log
 _IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", "webp"]
 _VIDEO_EXTENSIONS = [".mp4"]
 _SUPPORTED_CONTEXT_LEN = [1, 9]  # Input frames
-NUM_TOTAL_FRAMES = 33
+NUM_TOTAL_FRAMES_DEFAULT = 33
 
 
 def add_common_arguments(parser):
@@ -158,7 +158,7 @@ def resize_input(video: torch.Tensor, resolution: list[int]):
     return video_cropped
 
 
-def load_image_from_list(flist, data_resolution: List[int]) -> dict:
+def load_image_from_list(flist, data_resolution: List[int], num_total_frames: int = NUM_TOTAL_FRAMES_DEFAULT) -> dict:
     """
     Function to load images from a list of image paths.
     Args:
@@ -176,7 +176,7 @@ def load_image_from_list(flist, data_resolution: List[int]) -> dict:
 
             # Convert to tensor
             img = torchvision.transforms.functional.to_tensor(img)
-            static_vid = img.unsqueeze(0).repeat(NUM_TOTAL_FRAMES, 1, 1, 1)
+            static_vid = img.unsqueeze(0).repeat(num_total_frames, 1, 1, 1)
             static_vid = static_vid * 2 - 1
 
             log.debug(
@@ -189,7 +189,9 @@ def load_image_from_list(flist, data_resolution: List[int]) -> dict:
     return all_videos
 
 
-def read_input_images(batch_input_path: str, data_resolution: List[int]) -> dict:
+def read_input_images(
+    batch_input_path: str, data_resolution: List[int], num_total_frames: int = NUM_TOTAL_FRAMES_DEFAULT
+) -> dict:
     """
     Function to read input images from a JSONL file.
 
@@ -207,10 +209,12 @@ def read_input_images(batch_input_path: str, data_resolution: List[int]) -> dict
             data = json.loads(line.strip())
             flist.append(data["visual_input"])
 
-    return load_image_from_list(flist, data_resolution=data_resolution)
+    return load_image_from_list(flist, data_resolution=data_resolution, num_total_frames=num_total_frames)
 
 
-def read_input_image(input_path: str, data_resolution: List[int]) -> dict:
+def read_input_image(
+    input_path: str, data_resolution: List[int], num_total_frames: int = NUM_TOTAL_FRAMES_DEFAULT
+) -> dict:
     """
     Function to read input image.
     Args:
@@ -220,10 +224,15 @@ def read_input_image(input_path: str, data_resolution: List[int]) -> dict:
         Dict containing input image
     """
     flist = [input_path]
-    return load_image_from_list(flist, data_resolution=data_resolution)
+    return load_image_from_list(flist, data_resolution=data_resolution, num_total_frames=num_total_frames)
 
 
-def read_input_videos(batch_input_path: str, data_resolution: List[int], num_input_frames: int) -> dict:
+def read_input_videos(
+    batch_input_path: str,
+    data_resolution: List[int],
+    num_input_frames: int,
+    num_total_frames: int = NUM_TOTAL_FRAMES_DEFAULT,
+) -> dict:
     r"""
     Function to read input videos.
     Args:
@@ -238,10 +247,14 @@ def read_input_videos(batch_input_path: str, data_resolution: List[int], num_inp
         for line in f:
             data = json.loads(line.strip())
             flist.append(data["visual_input"])
-    return load_videos_from_list(flist, data_resolution=data_resolution, num_input_frames=num_input_frames)
+    return load_videos_from_list(
+        flist, data_resolution=data_resolution, num_input_frames=num_input_frames, num_total_frames=num_total_frames
+    )
 
 
-def read_input_video(input_path: str, data_resolution: List[int], num_input_frames: int) -> dict:
+def read_input_video(
+    input_path: str, data_resolution: List[int], num_input_frames: int, num_total_frames: int = NUM_TOTAL_FRAMES_DEFAULT
+) -> dict:
     """
     Function to read input video.
     Args:
@@ -252,10 +265,17 @@ def read_input_video(input_path: str, data_resolution: List[int], num_input_fram
         Dict containing input video
     """
     flist = [input_path]
-    return load_videos_from_list(flist, data_resolution=data_resolution, num_input_frames=num_input_frames)
+    return load_videos_from_list(
+        flist, data_resolution=data_resolution, num_input_frames=num_input_frames, num_total_frames=num_total_frames
+    )
 
 
-def load_videos_from_list(flist: List[str], data_resolution: List[int], num_input_frames: int) -> dict:
+def load_videos_from_list(
+    flist: List[str],
+    data_resolution: List[int],
+    num_input_frames: int,
+    num_total_frames: int = NUM_TOTAL_FRAMES_DEFAULT,
+) -> dict:
     """
     Function to load videos from a list of video paths.
     Args:
@@ -287,7 +307,7 @@ def load_videos_from_list(flist: List[str], data_resolution: List[int], num_inpu
 
             # Pad the video to NUM_TOTAL_FRAMES (because the tokenizer expects inputs of NUM_TOTAL_FRAMES)
             video = torch.cat(
-                (video, video[-1, :, :, :].unsqueeze(0).repeat(NUM_TOTAL_FRAMES - num_input_frames, 1, 1, 1)),
+                (video, video[-1, :, :, :].unsqueeze(0).repeat(num_total_frames - num_input_frames, 1, 1, 1)),
                 dim=0,
             )
 
@@ -310,6 +330,7 @@ def load_vision_input(
     input_image_or_video_path: str,
     data_resolution: List[int],
     num_input_frames: int,
+    num_total_frames: int = NUM_TOTAL_FRAMES_DEFAULT,
 ):
     """
     Function to load vision input.
@@ -326,23 +347,29 @@ def load_vision_input(
     if batch_input_path:
         log.info(f"Reading batch inputs from path: {batch_input_path}")
         if input_type == "image" or input_type == "text_and_image":
-            input_videos = read_input_images(batch_input_path, data_resolution=data_resolution)
+            input_videos = read_input_images(
+                batch_input_path, data_resolution=data_resolution, num_total_frames=num_total_frames
+            )
         elif input_type == "video" or input_type == "text_and_video":
             input_videos = read_input_videos(
                 batch_input_path,
                 data_resolution=data_resolution,
                 num_input_frames=num_input_frames,
+                num_total_frames=num_total_frames,
             )
         else:
             raise ValueError(f"Invalid input type {input_type}")
     else:
         if input_type == "image" or input_type == "text_and_image":
-            input_videos = read_input_image(input_image_or_video_path, data_resolution=data_resolution)
+            input_videos = read_input_image(
+                input_image_or_video_path, data_resolution=data_resolution, num_total_frames=num_total_frames
+            )
         elif input_type == "video" or input_type == "text_and_video":
             input_videos = read_input_video(
                 input_image_or_video_path,
                 data_resolution=data_resolution,
                 num_input_frames=num_input_frames,
+                num_total_frames=num_total_frames,
             )
         else:
             raise ValueError(f"Invalid input type {input_type}")

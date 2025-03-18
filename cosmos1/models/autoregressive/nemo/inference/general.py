@@ -132,6 +132,7 @@ def main(args):
             grad_reduce_in_fp32=False,
         ),
     )
+
     _setup_trainer_and_restore_model(path=args.ar_model_dir, trainer=trainer, model=model)
 
     inference_wrapped_model = model.get_inference_wrapper(torch.bfloat16, inference_batch_times_seqlen_threshold=1000)
@@ -213,10 +214,16 @@ def main(args):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--width", required=True, type=int, help="Width of the input videos")
-    parser.add_argument("--height", required=True, type=int, help="Height of the input videos")
-    parser.add_argument("--num_context_frames", required=True, type=int, help="Number of context frames")
-    parser.add_argument("--tokenizer_compression_factor", required=True, type=str, help="Tokenizer compression factor")
+    parser.add_argument("--width", required=False, default=1024, type=int, help="Width of the input videos")
+    parser.add_argument("--height", required=False, default=640, type=int, help="Height of the input videos")
+    parser.add_argument("--num_context_frames", required=False, default=33, type=int, help="Number of context frames")
+    parser.add_argument(
+        "--tokenizer_compression_factor",
+        required=False,
+        default="8,16,16",
+        type=str,
+        help="Tokenizer compression factor",
+    )
     parser.add_argument("--input_type", type=str, default="video", help="Type of input", choices=["image", "video"])
     parser.add_argument(
         "--input_image_or_video_path", required=True, type=str, help="The path to the input video to run inference"

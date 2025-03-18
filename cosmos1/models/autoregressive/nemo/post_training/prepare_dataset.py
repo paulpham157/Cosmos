@@ -177,29 +177,29 @@ def main(args):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--input_videos_dir", required=True, type=str, help="Path to the input .mp4 files")
-    parser.add_argument("--width", required=True, type=int, help="Width of the input videos")
-    parser.add_argument("--height", required=True, type=int, help="Height of the input videos")
+    parser.add_argument("--width", default=1024, type=int, help="Width of the input videos")
+    parser.add_argument("--height", default=640, type=int, help="Height of the input videos")
     parser.add_argument(
         "--encoder_path",
-        default="nvidia/Cosmos-0.1-Tokenizer-DV4x8x8",
+        default="nvidia/Cosmos-1.0-Tokenizer-DV8x16x16",
         type=str,
         help="Hugging Face repo or local path to encoder",
     )
     parser.add_argument(
         "--decoder_path",
-        default="nvidia/Cosmos-0.1-Tokenizer-DV4x8x8",
+        default="nvidia/Cosmos-1.0-Tokenizer-DV8x16x16",
         type=str,
         help="Hugging Face repo or local path to decoder",
     )
     parser.add_argument(
         "--num_context_frames",
-        default=17,
+        default=33,
         type=int,
         help="Number of context frames to use for the tokenizer",
     )
     parser.add_argument(
         "--tokenizer_compression_factor",
-        default="4,8,8",
+        default="8,16,16",
         type=str,
         help="Tokenizer compression factor",
     )

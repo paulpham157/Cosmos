@@ -172,9 +172,10 @@ Complete the following steps to generate a new output video using a post-trained
    ```bash
    cd /workspace/Cosmos
    git lfs pull $INPUT_DATA
+   export NUM_DEVICES=8 # change to your number of GPUs
 
    # change --ar_model_dir to a post-trained checkpoint under ./logs/default/checkpoints/
-   torchrun --nproc-per-node 1 cosmos1/models/autoregressive/nemo/inference/general.py \
+   torchrun --nproc-per-node $NUM_DEVICES cosmos1/models/autoregressive/nemo/inference/general.py \
    --input_image_or_video_path $INPUT_DATA \
    --video_save_name "Cosmos-1.0-Autoregressive-4B.mp4" \
    --ar_model_dir "$NEMO_CHECKPOINT"

@@ -13,7 +13,7 @@ NVIDIA Cosmos now includes three subprojects:
 - Cosmos-Transfer1 is a world-to-world transfer model designed to bridge the perceptual divide between simulated and real-world environments.
 
 ### Cosmos-Reason1: https://github.com/nvidia-cosmos/cosmos-reason1
-- Cosmos-Reason1 models can understand the physical common sense and generate appropriate embodied decisions in natural language through long chain-of-thought reasoning processes.
+- Cosmos-Reason1 models understand the physical common sense and generate appropriate embodied decisions in natural language through long chain-of-thought reasoning processes.
 
 -----------------------------------------------------------
 

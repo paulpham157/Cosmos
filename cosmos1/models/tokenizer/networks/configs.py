@@ -58,6 +58,20 @@ continuous_image = dict(
     # Specify type of decoder ["Default"]
     decoder=DecoderType.Default.name,
 )
+continuous_image_8x8 = dict(continuous_image)
+continuous_image_8x8["spatial_compression"] = 8
+
+continuous_image_16x16 = dict(continuous_image)
+continuous_image_16x16["spatial_compression"] = 16
+
+continuous_image_8x8_lowres = dict(continuous_image)
+continuous_image_8x8_lowres["patch_size"] = 2
+continuous_image_8x8_lowres["spatial_compression"] = 8
+
+continuous_image_16x16_lowres = dict(continuous_image)
+continuous_image_16x16_lowres["patch_size"] = 2
+continuous_image_16x16_lowres["spatial_compression"] = 16
+
 
 discrete_image = dict(
     # The attention resolution for res blocks.
@@ -96,6 +110,19 @@ discrete_image = dict(
     # Specify type of decoder ["Default"]
     decoder=DecoderType.Default.name,
 )
+discrete_image_8x8 = dict(discrete_image)
+discrete_image_8x8["spatial_compression"] = 8
+
+discrete_image_16x16 = dict(discrete_image)
+discrete_image_16x16["spatial_compression"] = 16
+
+discrete_image_8x8_lowres = dict(discrete_image)
+discrete_image_8x8_lowres["patch_size"] = 2
+discrete_image_8x8_lowres["spatial_compression"] = 8
+
+discrete_image_16x16_lowres = dict(discrete_image)
+discrete_image_16x16_lowres["patch_size"] = 2
+discrete_image_16x16_lowres["spatial_compression"] = 16
 
 continuous_video = dict(
     attn_resolutions=[32],
@@ -120,6 +147,24 @@ continuous_video = dict(
     decoder=Decoder3DType.FACTORIZED.name,
     name="CV",
 )
+continuous_video_4x8x8 = dict(continuous_video)
+continuous_video_4x8x8["channels_mult"] = [2, 4]
+continuous_video_4x8x8["temporal_compression"] = 4
+continuous_video_4x8x8["spatial_compression"] = 8
+
+continuous_video_8x8x8 = dict(continuous_video)
+continuous_video_8x8x8["temporal_compression"] = 8
+continuous_video_8x8x8["spatial_compression"] = 8
+
+continuous_video_8x16x16 = dict(continuous_video)
+continuous_video_8x16x16["temporal_compression"] = 8
+continuous_video_8x16x16["spatial_compression"] = 16
+
+continuous_video_4x8x8_lowres = dict(continuous_video)
+continuous_video_4x8x8_lowres["temporal_compression"] = 4
+continuous_video_4x8x8_lowres["spatial_compression"] = 8
+continuous_video_4x8x8_lowres["patch_size"] = 2
+
 
 discrete_video = dict(
     attn_resolutions=[32],
@@ -145,3 +190,21 @@ discrete_video = dict(
     decoder=Decoder3DType.FACTORIZED.name,
     name="DV",
 )
+
+discrete_video_4x8x8 = dict(discrete_video)
+discrete_video_4x8x8["temporal_compression"] = 4
+discrete_video_4x8x8["spatial_compression"] = 8
+
+discrete_video_8x8x8 = dict(discrete_video)
+discrete_video_8x8x8["temporal_compression"] = 8
+discrete_video_8x8x8["spatial_compression"] = 8
+
+discrete_video_8x16x16 = dict(discrete_video)
+discrete_video_8x16x16["temporal_compression"] = 8
+discrete_video_8x16x16["spatial_compression"] = 16
+
+discrete_video_4x8x8_lowres = dict(discrete_video)
+discrete_video_4x8x8_lowres["z_channels"] = 256
+discrete_video_4x8x8_lowres["temporal_compression"] = 4
+discrete_video_4x8x8_lowres["spatial_compression"] = 8
+discrete_video_4x8x8_lowres["patch_size"] = 2

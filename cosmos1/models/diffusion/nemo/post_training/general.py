@@ -37,12 +37,13 @@ def cosmos_diffusion_7b_text2world_finetune() -> run.Partial:
     recipe.trainer.strategy.tensor_model_parallel_size = 8
     recipe.trainer.strategy.sequence_parallel = True
     recipe.trainer.strategy.ckpt_async_save = False
+    recipe.trainer.strategy.ckpt_load_strictness = "log_all"
 
     # FSDP
-    recipe.trainer.strategy.ddp.with_megatron_fsdp_code_path = True
-    recipe.trainer.strategy.ddp.data_parallel_sharding_strategy = "MODEL_AND_OPTIMIZER_STATES"
-    recipe.trainer.strategy.ddp.overlap_param_gather = True
-    recipe.trainer.strategy.ddp.overlap_grad_reduce = True
+    # recipe.trainer.strategy.ddp.with_megatron_fsdp_code_path = True
+    # recipe.trainer.strategy.ddp.data_parallel_sharding_strategy = "MODEL_AND_OPTIMIZER_STATES"
+    recipe.trainer.strategy.ddp.overlap_param_gather = False
+    recipe.trainer.strategy.ddp.overlap_grad_reduce = False
     recipe.model.config.use_cpu_initialization = True
 
     # Activation Checkpointing
@@ -81,12 +82,13 @@ def cosmos_diffusion_14b_text2world_finetune() -> run.Partial:
     recipe.trainer.strategy.tensor_model_parallel_size = 8
     recipe.trainer.strategy.sequence_parallel = True
     recipe.trainer.strategy.ckpt_async_save = False
+    recipe.trainer.strategy.ckpt_load_strictness = "log_all"
 
     # FSDP
-    recipe.trainer.strategy.ddp.with_megatron_fsdp_code_path = True
-    recipe.trainer.strategy.ddp.data_parallel_sharding_strategy = "MODEL_AND_OPTIMIZER_STATES"
-    recipe.trainer.strategy.ddp.overlap_param_gather = True
-    recipe.trainer.strategy.ddp.overlap_grad_reduce = True
+    # recipe.trainer.strategy.ddp.with_megatron_fsdp_code_path = True
+    # recipe.trainer.strategy.ddp.data_parallel_sharding_strategy = "MODEL_AND_OPTIMIZER_STATES"
+    recipe.trainer.strategy.ddp.overlap_param_gather = False
+    recipe.trainer.strategy.ddp.overlap_grad_reduce = False
     recipe.model.config.use_cpu_initialization = True
 
     # Activation Checkpointing

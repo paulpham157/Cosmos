@@ -24,6 +24,7 @@ import numpy as np
 import torch
 import torchvision.transforms.functional as transforms_F
 
+from cosmos1.models.diffusion.model.model_sample_multiview_driving import DiffusionMultiCameraV2WModel
 from cosmos1.models.diffusion.model.model_t2w import DiffusionT2WModel
 from cosmos1.models.diffusion.model.model_v2w import DiffusionV2WModel
 from cosmos1.utils import log, misc
@@ -148,6 +149,20 @@ def add_common_arguments(parser):
         action="store_true",
         help="Offload guardrail models after inference",
     )
+
+
+# Function to fully remove an argument
+def remove_argument(parser, arg_name):
+    # Get a list of actions to remove
+    actions_to_remove = [action for action in parser._actions if action.dest == arg_name]
+
+    for action in actions_to_remove:
+        # Remove action from parser._actions
+        parser._actions.remove(action)
+
+        # Remove option strings
+        for option_string in action.option_strings:
+            parser._option_string_actions.pop(option_string, None)
 
 
 def validate_args(args: argparse.Namespace, inference_type: str) -> None:
@@ -391,6 +406,48 @@ def get_video_batch(model, prompt_embedding, negative_prompt_embedding, height, 
     return raw_video_batch, state_shape
 
 
+def get_video_batch_for_multi_camera_model(
+    model, prompt_embedding, height, width, fps, num_video_frames, frame_repeat_negative_condition
+):
+    """Prepare complete input batch for video generation including latent dimensions.
+
+    Args:
+        model: Diffusion model instance
+        prompt_embedding (torch.Tensor): Text prompt embeddings
+        height (int): Output video height
+        width (int): Output video width
+        fps (int): Output video frame rate
+        num_video_frames (int): Number of frames to generate
+        frame_repeat_negative_condition (int): Number of frames to generate
+
+    Returns:
+        tuple:
+            - data_batch (dict): Complete model input batch
+            - state_shape (list): Shape of latent state [C,T,H,W] accounting for VAE compression
+    """
+    n_cameras = len(prompt_embedding)
+    prompt_embedding = einops.rearrange(torch.cat(prompt_embedding), "n t d -> (n t) d").unsqueeze(0)
+    raw_video_batch = prepare_data_batch(
+        height=height,
+        width=width,
+        num_frames=num_video_frames,
+        fps=fps,
+        prompt_embedding=prompt_embedding,
+    )
+    if frame_repeat_negative_condition != -1:
+        frame_repeat = torch.zeros(n_cameras)
+        frame_repeat[-1] = frame_repeat_negative_condition
+        frame_repeat[-2] = frame_repeat_negative_condition
+        raw_video_batch["frame_repeat"] = frame_repeat.unsqueeze(0).to(dtype=torch.bfloat16).cuda()
+    state_shape = [
+        model.tokenizer.channel,
+        model.tokenizer.get_latent_num_frames(int(num_video_frames / n_cameras)) * n_cameras,
+        height // model.tokenizer.spatial_compression_factor,
+        width // model.tokenizer.spatial_compression_factor,
+    ]
+    return raw_video_batch, state_shape
+
+
 def generate_world_from_text(
     model: DiffusionT2WModel,
     state_shape: list[int],
@@ -484,7 +541,6 @@ def generate_world_from_video(
             dim=2,
         ).contiguous()
     num_of_latent_condition = compute_num_latent_frames(model, num_input_frames)
-
     x_sigma_max = (
         misc.arch_invariant_rand(
             (1,) + tuple(state_shape),
@@ -652,6 +708,8 @@ def create_condition_latent_from_input_frames(
     log.debug(
         f"create latent with input shape {encode_input_frames.shape} including padding {num_frames_encode - num_frames_condition} at the end"
     )
+    if hasattr(model, "n_cameras"):
+        encode_input_frames = einops.rearrange(encode_input_frames, "(B V) C T H W -> B C (V T) H W", V=model.n_cameras)
     latent = model.encode(encode_input_frames)
     return latent, encode_input_frames
 
@@ -695,6 +753,46 @@ def get_condition_latent(
     condition_latent = condition_latent.to(torch.bfloat16)
 
     return condition_latent
+
+
+def get_condition_latent_multi_camera(
+    model: DiffusionMultiCameraV2WModel,
+    input_image_or_video_path: str,
+    num_input_frames: int = 1,
+    state_shape: list[int] = None,
+):
+    """Get condition latent from input image/video file. This is the function for the multi-camera model where each camera has one latent condition frame.
+
+    Args:
+        model (DiffusionMultiCameraV2WModel): Video generation model
+        input_image_or_video_path (str): Path to conditioning image/video
+        num_input_frames (int): Number of input frames for video2world prediction
+
+    Returns:
+        tuple: (condition_latent, input_frames) where:
+            - condition_latent (torch.Tensor): Encoded latent condition [B,C,T,H,W]
+            - input_frames (torch.Tensor): Input frames tensor [B,C,T,H,W]
+    """
+    if state_shape is None:
+        state_shape = model.state_shape
+    assert num_input_frames > 0, "num_input_frames must be greater than 0"
+
+    H, W = (
+        state_shape[-2] * model.tokenizer.spatial_compression_factor,
+        state_shape[-1] * model.tokenizer.spatial_compression_factor,
+    )
+    input_path_format = input_image_or_video_path.split(".")[-1]
+    input_frames = read_video_or_image_into_frames_BCTHW(
+        input_image_or_video_path,
+        input_path_format=input_path_format,
+        H=H,
+        W=W,
+    )
+    input_frames = einops.rearrange(input_frames, "B C (V T) H W -> (B V) C T H W", V=model.n_cameras)
+    condition_latent, _ = create_condition_latent_from_input_frames(model, input_frames, num_input_frames)
+    condition_latent = condition_latent.to(torch.bfloat16)
+
+    return condition_latent, einops.rearrange(input_frames, "(B V) C T H W -> B C (V T) H W", V=model.n_cameras)[0]
 
 
 def check_input_frames(input_path: str, required_frames: int) -> bool:

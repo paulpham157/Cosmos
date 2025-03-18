@@ -116,6 +116,7 @@ class BaseVideoCondition:
     num_frames: Optional[torch.Tensor] = None
     image_size: Optional[torch.Tensor] = None
     scalar_feature: Optional[torch.Tensor] = None
+    frame_repeat: Optional[torch.Tensor] = None
 
     def to_dict(self) -> Dict[str, Optional[torch.Tensor]]:
         return {f.name: getattr(self, f.name) for f in fields(self)}
@@ -210,7 +211,6 @@ class GeneralConditioner(nn.Module, ABC):
         # make sure emb_name in override_dropout_rate is valid
         for emb_name in override_dropout_rate.keys():
             assert emb_name in self.embedders, f"invalid name found {emb_name}"
-
         for emb_name, embedder in self.embedders.items():
             with torch.no_grad():
                 if hasattr(embedder, "input_key") and (embedder.input_key is not None):

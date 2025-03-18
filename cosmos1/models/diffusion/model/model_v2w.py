@@ -140,10 +140,9 @@ class DiffusionV2WModel(DiffusionT2WModel):
             condition, cfg_video_cond_bool, condition_latent, condition_video_augment_sigma_in_inference, sigma, seed
         )
         condition_video_indicator = condition.condition_video_indicator  # [B, 1, T, 1, 1]
-
         # Compose the model input with condition region (augment_latent) and generation region (noise_x)
         new_noise_xt = condition_video_indicator * augment_latent + (1 - condition_video_indicator) * noise_x
-        # Call the abse model
+        # Call the base model
         denoise_pred = super().denoise(new_noise_xt, sigma, condition)
 
         x0_pred_replaced = condition_video_indicator * gt_latent + (1 - condition_video_indicator) * denoise_pred.x0
@@ -324,7 +323,6 @@ class DiffusionV2WModel(DiffusionT2WModel):
 
         B, C, T, H, W = latent_state.shape
         # Create additional input_mask channel, this will be concatenated to the input of the network
-        # See design doc section (Implementation detail A.1 and A.2) for visualization
         ones_padding = torch.ones((B, 1, T, H, W), dtype=latent_state.dtype, device=latent_state.device)
         zeros_padding = torch.zeros((B, 1, T, H, W), dtype=latent_state.dtype, device=latent_state.device)
         assert condition.video_cond_bool is not None, "video_cond_bool should be set"

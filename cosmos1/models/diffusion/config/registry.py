@@ -18,9 +18,11 @@ from hydra.core.config_store import ConfigStore
 from cosmos1.models.diffusion.config.base.conditioner import (
     BaseVideoConditionerConfig,
     VideoConditionerFpsSizePaddingConfig,
+    VideoConditionerFpsSizePaddingFrameRepeatConfig,
     VideoExtendConditionerConfig,
+    VideoExtendConditionerFrameRepeatConfig,
 )
-from cosmos1.models.diffusion.config.base.net import FADITV2_14B_Config, FADITV2Config
+from cosmos1.models.diffusion.config.base.net import FADITV2_14B_Config, FADITV2_MultiCam_Config, FADITV2Config
 from cosmos1.models.diffusion.config.base.tokenizer import get_cosmos_diffusion_tokenizer_comp8x8x8
 
 
@@ -36,6 +38,12 @@ def register_net(cs):
         package="model.net",
         name="faditv2_14b",
         node=FADITV2_14B_Config,
+    )
+    cs.store(
+        group="net",
+        package="model.net",
+        name="faditv2_multicam_7b",
+        node=FADITV2_MultiCam_Config,
     )
 
 
@@ -57,6 +65,18 @@ def register_conditioner(cs):
         package="model.conditioner",
         name="video_cond",
         node=VideoExtendConditionerConfig,
+    )
+    cs.store(
+        group="conditioner",
+        package="model.conditioner",
+        name="add_fps_image_size_padding_mask_frame_repeat",
+        node=VideoConditionerFpsSizePaddingFrameRepeatConfig,
+    )
+    cs.store(
+        group="conditioner",
+        package="model.conditioner",
+        name="video_cond_frame_repeat",
+        node=VideoExtendConditionerFrameRepeatConfig,
     )
 
 

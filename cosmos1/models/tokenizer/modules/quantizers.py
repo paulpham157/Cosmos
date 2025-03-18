@@ -26,6 +26,8 @@ from loguru import logger as logging
 
 from cosmos1.models.tokenizer.modules.utils import default, entropy, pack_one, rearrange, round_ste, unpack_one
 
+_PERSISTENT = True
+
 
 class ResidualFSQuantizer(nn.Module):
     """Residual Finite Scalar Quantization
@@ -83,10 +85,10 @@ class FSQuantizer(nn.Module):
         super().__init__()
         self.dtype = ignore_kwargs.get("dtype", torch.bfloat16)
         _levels = torch.tensor(levels, dtype=torch.int32)
-        self.register_buffer("_levels", _levels, persistent=False)
+        self.register_buffer("_levels", _levels, persistent=_PERSISTENT)
 
         _basis = torch.cumprod(torch.tensor([1] + levels[:-1]), dim=0, dtype=torch.int32)
-        self.register_buffer("_basis", _basis, persistent=False)
+        self.register_buffer("_basis", _basis, persistent=_PERSISTENT)
 
         self.scale = scale
 
@@ -111,7 +113,7 @@ class FSQuantizer(nn.Module):
         self.codebook_size = self._levels.prod().item()
 
         implicit_codebook = self.indices_to_codes(torch.arange(self.codebook_size), project_out=False)
-        self.register_buffer("implicit_codebook", implicit_codebook, persistent=False)
+        self.register_buffer("implicit_codebook", implicit_codebook, persistent=_PERSISTENT)
 
     def bound(self, z: torch.Tensor, eps: float = 1e-3) -> torch.Tensor:
         """Bound `z`, an array of shape (..., d)."""
@@ -413,15 +415,15 @@ class LFQuantizer(nn.Module):
             self.register_buffer(
                 "mask",
                 2 ** torch.arange(codebook_dim - 1, -1, -1),
-                persistent=False,
+                persistent=_PERSISTENT,
             )
-            self.register_buffer("zero", torch.tensor(0.0), persistent=False)
+            self.register_buffer("zero", torch.tensor(0.0), persistent=_PERSISTENT)
 
             all_codes = torch.arange(codebook_size)
             bits = ((all_codes[..., None].int() & self.mask) != 0).float()
             codebook = 2 * bits - 1.0
 
-            self.register_buffer("codebook", codebook, persistent=False)  # [codebook_size, codebook_dim]
+            self.register_buffer("codebook", codebook, persistent=_PERSISTENT)  # [codebook_size, codebook_dim]
 
     def forward(self, z: torch.Tensor, temp: float = None) -> torch.Tensor:
         temp = temp or self.default_temp

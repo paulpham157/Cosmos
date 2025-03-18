@@ -36,7 +36,7 @@ The NeMo Framework supports the following Cosmos Autoregressive (AR) models for 
    ```bash
    docker run --ipc=host -it --gpus=all \
      -v $PATH_TO_COSMOS_REPO:/workspace/Cosmos \
-     nvcr.io/nvidia/nemo:25.02rc1 bash
+     nvcr.io/nvidia/nemo:25.02rc0 bash
    ```
 
 4. **Install Python Dependencies**
@@ -56,7 +56,7 @@ Cosmos Autoregressive models are typically trained on a specific tokenizer confi
 In this tutorial, we will:
 - Take a model originally trained on an 8×16×16 tokenizer.
 - Post-train it on a 4×8×8 tokenizer.
-- Demonstrate using a dataset of 10,000 videos from the [HDVILA dataset](https://huggingface.co/datasets/TempoFunk/hdvila-100M).
+- Demonstrate using a sample dataset of 10 (in production, we recommend using 10k videos from a distribution similar to that of pretraining).
 
 ### 1. Calculate Sequence Lengths
 
@@ -73,21 +73,24 @@ export NUM_GPUS=8  # change this to your number of GPUs
 
 export ENCODER_PATH="nvidia/Cosmos-0.1-Tokenizer-DV4x8x8"
 export DECODER_PATH="nvidia/Cosmos-0.1-Tokenizer-DV4x8x8"
-export INPUT_VIDEOS_DIR="./my_videos"
+export INPUT_VIDEOS_DIR="cosmos1/models/autoregressive/assets/v1p0/batch_inputs"
 export OUTPUT_TOKENS_DIR="./my_4x8x8_tokens"
 
 mkdir -p ./experiments
-pip install -requirements.txt
 ```
 
 ### 2. Prepare the Dataset
 
-Download 10k videos from the [HDVILA dataset](https://huggingface.co/datasets/TempoFunk/hdvila-100M) and place them in the `./my_videos` directory (videos should be in `.mp4` format).
+Ensure that you have all the videos available in the sample dataset.
+
+```
+git lfs fetch --all
+```
 
 Run the following command to prepare the dataset.
 
 ```bash
-python cosmos1/models/autoregressive/nemo/post_training/prepare_dataset.py \
+torchrun --nproc-per-node=1 cosmos1/models/autoregressive/nemo/post_training/prepare_dataset.py \
   --width $WIDTH \
   --height $HEIGHT \
   --num_context_frames $NUM_FRAMES \
@@ -106,12 +109,14 @@ This tutorial offers a baseline recipe to help you build intuition about post-tr
 - **Global Batch Size:** 32
 - **Learning Rate:** 1e-4
 - **Recommended Steps:** ~300 steps (roughly 1 epoch for ~128M tokens)
-- **Loss Convergence:** Target loss in the range of 6-7 on the HDVILA dataset
+- **Loss Convergence:** Target loss in the range of 6-7
 
 A good rule of thumb:
 - Monitor training/validation loss to ensure steady improvement.
 - Evaluate sample outputs at various checkpoints to verify coherent generation.
 - For more precision, consider running additional training steps.
+
+In this tutorial, we will only post-train on 10 sample videos.
 
 ### 4. Run Post-training
 
@@ -122,11 +127,11 @@ torchrun --nproc-per-node=$NUM_GPUS cosmos1/models/autoregressive/nemo/post_trai
   --data_path $OUTPUT_TOKENS_DIR \
   --split_string 10,1,1 \
   --log_dir ./experiments/example_log_dir \
-  --global_batch_size 32 \
-  --micro_batch_size 2 \
+  --global_batch_size 1 \
+  --micro_batch_size 1 \
   --lr 1e-4 \
-  --max_steps 1000 --save_every_n_steps 50 \
-  --max_epochs 10 \
+  --max_steps 100 --save_every_n_steps 25 \
+  --max_epochs 1 \
   --tensor_model_parallel_size $NUM_GPUS \
   --model_path nvidia/Cosmos-1.0-Autoregressive-4B
 ```
@@ -143,21 +148,21 @@ disable the diffusion decoder, as this is not yet supported for non-standard tok
 1. **Checkpoints:**  
    Checkpoints are saved under `./experiments/example_log_dir/default/checkpoints/`. For example:
    ```bash
-   epoch=0-step=49
-   epoch=0-step=99
-   epoch=0-step=149
+   epoch=1-step=49
+   epoch=1-step=99
+   epoch=1-step=149
    ```
-   Choose a checkpoint (e.g., `epoch=0-step=99`) for inference.
+   Choose a checkpoint (e.g., `epoch=1-step=99`) for inference.
 
 2. **Run Inference:**  
    Generate sample video outputs:
    ```bash
    # Set the checkpoint directory
-   export CKPT_DIR="./experiments/example_log_dir/default/checkpoints/epoch=0-step=99"
+   export CKPT_DIR="./experiments/example_log_dir/default/checkpoints/epoch=1-step=99"
    # Create an evaluation folder
    mkdir -p "$CKPT_DIR/evals"
    export INPUT_FILE="cosmos1/models/autoregressive/assets/v1p0/input.mp4"
-   git lfs pull $INPUT_FILE
+   git lfs fetch --all
    torchrun --nproc-per-node=$NUM_GPUS \
      cosmos1/models/autoregressive/nemo/inference/general.py \
        --input_image_or_video_path $INPUT_FILE \
@@ -218,8 +223,8 @@ export ENCODER_PATH=nvidia/Cosmos-0.1-Tokenizer-DV4x8x8
 export DECODER_PATH=nvidia/Cosmos-0.1-Tokenizer-DV4x8x8
 
 export NUM_GPUS=8 # Replace with the number of GPUs you have
-export OUTPUT_TOKENS_DIR=... # Replace with the directory to store your tokens
-export INPUT_JSONL=... # Replace with the filepath to your jsonl describing your dataset
+export OUTPUT_TOKENS_DIR=./my_v2w_tokens # Replace with the directory to store your tokens
+export INPUT_JSONL="cosmos1/models/autoregressive/assets/v1p0/batch_inputs/video2world.jsonl" # Replace with the filepath to your jsonl describing your dataset
 ```
 
 ### 2. Prepare the Video2World Dataset
@@ -248,10 +253,10 @@ torchrun --nproc-per-node=$NUM_GPUS cosmos1/models/autoregressive/nemo/post_trai
   --data_path $OUTPUT_TOKENS_DIR \
   --save_every_n_steps 50 \
   --tensor_model_parallel_size $NUM_GPUS \
-  --global_batch_size 8 \
+  --global_batch_size 1 \
   --micro_batch_size 1 \
   --lr 1e-4 \
-  --max_steps 1000 \
+  --max_steps 100 \
   --max_epochs 10 \
   --log_dir ./experiments/example_log_dir_v2w
 ```

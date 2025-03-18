@@ -22,11 +22,12 @@ Cosmos Autoregressive-based WFMs can be post-trained for a variety of Physical A
 | Post-training Task  | Support Status |
 |-------------------------|--------------------|
 | General post-training   | **Supported**      |
-| Instruction control     | **Coming Soon**    |
-| Action control          | **Coming Soon**    |
+| Instruction control     | **Supported**    |
+| Action control          | **Supported**      |
 | Camera control          | **Coming Soon**    |
 | Multi-view generation   | **Coming Soon**    |
 | Multi-view generation with vehicle trajectory control | **Coming Soon** |
+| Changing the Video Tokenizer | **Supported** |
 
 ## Prerequisites
 

@@ -45,15 +45,15 @@ LATENT_SHAPE = [5, 40, 64]
 NUM_INPUT_FRAMES_VIDEO = 9
 
 
-class CosmosMCoreTokenizerWrappper:
+class MockMCoreTokenizer:
     """
     A small dummy wrapper to pass into the text generation controller.
     """
 
-    def __init__(self):
+    def __init__(self, vocab_size: int = 64000):
         self.tokenizer = None
         self.eod = -1
-        self.vocab_size = 64000
+        self.vocab_size = vocab_size
 
     def detokenize(self, tokens: List[int], remove_special_tokens: bool = False):
         return tokens
@@ -138,7 +138,7 @@ def main(args):
 
     # Generate tokens
     text_generation_controller = SimpleTextGenerationController(
-        inference_wrapped_model=inference_wrapped_model, tokenizer=CosmosMCoreTokenizerWrappper()
+        inference_wrapped_model=inference_wrapped_model, tokenizer=MockMCoreTokenizer()
     )
 
     mcore_engine = MCoreEngine(text_generation_controller=text_generation_controller, max_batch_size=1)

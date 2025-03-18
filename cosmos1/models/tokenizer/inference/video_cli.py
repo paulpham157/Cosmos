@@ -81,22 +81,18 @@ def _parse_args() -> tuple[Namespace, dict[str, Any]]:
     parser.add_argument(
         "--tokenizer_type",
         type=str,
-        choices=["CV", "DV"],
+        default=None,
+        choices=[
+            "CV4x8x8",
+            "DV4x8x8",
+            "CV8x8x8",
+            "DV8x8x8",
+            "CV8x16x16",
+            "DV8x16x16",
+            "CV4x8x8-LowRes",
+            "DV4x8x8-LowRes",
+        ],
         help="Specifies the tokenizer type.",
-    )
-    parser.add_argument(
-        "--spatial_compression",
-        type=int,
-        choices=[8, 16],
-        default=8,
-        help="The spatial compression factor.",
-    )
-    parser.add_argument(
-        "--temporal_compression",
-        type=int,
-        choices=[4, 8],
-        default=4,
-        help="The temporal compression factor.",
     )
     parser.add_argument(
         "--mode",
@@ -141,15 +137,14 @@ def _parse_args() -> tuple[Namespace, dict[str, Any]]:
         action="store_true",
         help="If on, the input video will be be outputted too.",
     )
-
     args = parser.parse_args()
     return args
 
 
 logging.info("Initializes args ...")
 args = _parse_args()
-if args.mode == "torch" and args.tokenizer_type not in ["CV", "DV"]:
-    logging.error("'torch' backend requires the tokenizer_type of 'CV' or 'DV'.")
+if args.mode == "torch" and args.tokenizer_type is None:
+    logging.error("`torch` backend requires `--tokenizer_type` to be specified.")
     sys.exit(1)
 
 
@@ -161,11 +156,10 @@ def _run_eval() -> None:
         return
 
     if args.mode == "torch":
-        tokenizer_config = TokenizerConfigs[args.tokenizer_type].value
-        tokenizer_config.update(dict(spatial_compression=args.spatial_compression))
-        tokenizer_config.update(dict(temporal_compression=args.temporal_compression))
+        _type = args.tokenizer_type.replace("-", "_")
+        _config = TokenizerConfigs[_type].value
     else:
-        tokenizer_config = None
+        _config = None
 
     logging.info(
         f"Loading a torch.jit model `{os.path.dirname(args.checkpoint or args.checkpoint_enc or args.checkpoint_dec)}` ..."
@@ -174,7 +168,7 @@ def _run_eval() -> None:
         checkpoint=args.checkpoint,
         checkpoint_enc=args.checkpoint_enc,
         checkpoint_dec=args.checkpoint_dec,
-        tokenizer_config=tokenizer_config,
+        tokenizer_config=_config,
         device=args.device,
         dtype=args.dtype,
     )

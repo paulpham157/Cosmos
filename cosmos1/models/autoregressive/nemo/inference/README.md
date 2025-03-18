@@ -23,10 +23,11 @@ Cosmos Autoregressive-based WFMs can be post-trained for a variety of Physical A
 |-------------------------|--------------------|
 | General post-training     | **Supported**    |
 | Instruction control       | **Supported**    |
-| Action control          | **Coming Soon**    |
+| Action control            | **Supported**    |
 | Camera control          | **Coming Soon**    |
 | Multi-view generation   | **Coming Soon**    |
 | Multi-view generation with vehicle trajectory control | **Coming Soon** |
+| Changing the Video Tokenizer | **Supported** |
 
 ## Prerequisites
 
@@ -212,6 +213,37 @@ Complete the following steps to generate a new output video using a post-trained
       --video_save_name "Cosmos-1.0-Autoregressive-5B-Video2World.mp4" \
       --prompt "A video recorded from a moving vehicle's perspective, capturing roads, buildings, landscapes, and changing weather and lighting conditions." \
       --ar_model_dir "$NEMO_CHECKPOINT"
+   ```
+
+#### Action Control Models
+
+First generate a post-trained [action control checkpoint](../post_training/action_control/README.md).
+
+1. Run the following command to download and start the container:
+
+   ```bash
+   docker run --ipc=host -it --gpus=all \
+    -v $PATH_TO_COSMOS_REPO:/workspace/Cosmos \
+    -v <path/to/store/checkpoints>:/root/.cache/huggingface \
+    -v <path/to/action/control/checkpoint>:/checkpoint/ \
+    nvcr.io/nvidia/nemo:25.02.rc1 bash
+   ```
+
+2. Set the following environment variables:
+
+   ```bash
+   pip install -e Cosmos
+   export HF_HOME=/root/.cache/huggingface
+   export HF_TOKEN="<your/HF/access/token>"
+   ```
+
+3. Run the inference script, choosing the desired frame to visualize.
+
+   ```bash
+   python Cosmos/cosmos1/models/autoregressive/nemo/inference/action_control_infer.py /checkpoint \
+      --output-dir Cosmos/ \
+      --dataset-split val \
+      --index 42
    ```
 
 #### Example Output

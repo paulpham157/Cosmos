@@ -70,6 +70,19 @@ class ReMapkey(BaseConditionEntry):
         return {key: element}
 
 
+class FrameRepeatAttr(BaseConditionEntry):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, frame_repeat: torch.Tensor) -> Dict[str, torch.Tensor]:
+        return {
+            "frame_repeat": frame_repeat / 10.0,
+        }
+
+    def details(self) -> str:
+        return "Frame repeat, Output key: [frame_repeat]"
+
+
 @attrs.define(slots=False)
 class FPSConfig:
     """
@@ -112,6 +125,17 @@ class NumFramesConfig:
     obj: LazyDict = L(ReMapkey)(output_key="num_frames", dtype=None)
     dropout_rate: float = 0.0
     input_key: str = "num_frames"
+
+
+@attrs.define(slots=False)
+class FrameRepeatConfig:
+    """
+    Remap and process key from the input dictionary to the output dictionary. For `frame_repeat`.
+    """
+
+    obj: LazyDict = L(FrameRepeatAttr)()
+    dropout_rate: float = 0.0
+    input_key: str = "frame_repeat"
 
 
 @attrs.define(slots=False)
@@ -166,4 +190,23 @@ VideoExtendConditionerConfig: LazyDict = L(VideoExtendConditioner)(
     image_size=ImageSizeConfig(),
     padding_mask=PaddingMaskConfig(),
     video_cond_bool=VideoCondBoolConfig(),
+)
+
+VideoConditionerFpsSizePaddingFrameRepeatConfig: LazyDict = L(VideoConditioner)(
+    text=TextConfig(),
+    fps=FPSConfig(),
+    num_frames=NumFramesConfig(),
+    image_size=ImageSizeConfig(),
+    padding_mask=PaddingMaskConfig(),
+    frame_repeat=FrameRepeatConfig(),
+)
+
+VideoExtendConditionerFrameRepeatConfig: LazyDict = L(VideoExtendConditioner)(
+    text=TextConfig(),
+    fps=FPSConfig(),
+    num_frames=NumFramesConfig(),
+    image_size=ImageSizeConfig(),
+    padding_mask=PaddingMaskConfig(),
+    video_cond_bool=VideoCondBoolConfig(),
+    frame_repeat=FrameRepeatConfig(),
 )

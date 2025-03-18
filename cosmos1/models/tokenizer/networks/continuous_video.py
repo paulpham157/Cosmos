@@ -33,8 +33,6 @@ class CausalContinuousVideoTokenizer(nn.Module):
 
         encoder_name = kwargs.get("encoder", Encoder3DType.BASE.name)
         self.encoder = Encoder3DType[encoder_name].value(z_channels=z_factor * z_channels, **kwargs)
-        if kwargs.get("temporal_compression", 4) == 4:
-            kwargs["channels_mult"] = [2, 4]
         decoder_name = kwargs.get("decoder", Decoder3DType.BASE.name)
         self.decoder = Decoder3DType[decoder_name].value(z_channels=z_channels, **kwargs)
 

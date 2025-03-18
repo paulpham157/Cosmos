@@ -8,6 +8,7 @@ In the [Cosmos paper](https://research.nvidia.com/publication/2025-01_cosmos-wor
 - Camera Control: Adds camera pose conditioning to generate 3D-consistent video simulations from single images, enabling joystick-like navigation in virtual environments.
 - Multi-View Generation: Post-trains models for autonomous vehicles to generate synchronized multi-view videos from text prompts, simulating driving scenarios with multiple camera perspectives.
 - Multi-View Generation with Vehicle Trajectory Control: Extends multi-view generation by incorporating trajectory inputs, enabling precise simulation of driving environments for autonomous vehicles, adhering to specified paths.
+- Changing the Video Tokenizer: Post-train the WFM to adapt to a new tokenizer. e.g. from 8x8x8 to 4×8×8.
 
 Except for the instruction control where the WFM is post-trained on a dataset of instruction-video pairs, all other cases require minor modifications of the network architectures. Post-training tasks will be supported by NeMo Framework. In this initial release, we provide post-training scripts for the general post-training of both diffusion and autorgressive WFMs. Scripts of the other post-training tasks will be provided in a future release.
 
@@ -16,8 +17,9 @@ Except for the instruction control where the WFM is post-trained on a dataset of
 | Post-training Task  | Diffusion WFM | Autoregressive WFM |
 |---------------------|---------------|--------------------|
 | General post-training | [Supported](../models/diffusion/nemo/post_training/README.md) | [Supported](../models/autoregressive/nemo/post_training/README.md) |
-| Instruction control | Coming soon | Coming soon |
-| Action control | Coming soon | Coming soon |
-| Camera control | Coming soon | Coming soon |
-| Multi-view generation | Coming soon | Coming soon |
-| Multi-view generation with vehicle trajectory control | Coming soon | Coming soon |
+| Instruction control | [Supported](./diffusion/nemo/post_training/README.md) | [Supported](./diffusion/autoregressive/post_training/README.md) |
+| Action control | [Supported](./diffusion/nemo/post_training/action_control/README.md) | [Supported](./autoregressive/nemo/post_training/action_control/README.md) |
+| Camera control | [Supported](./diffusion/nemo/post_training/camera_control/README.md) | Coming soon |
+| Multi-view generation | [Supported](./diffusion/nemo/post_training/README.md) | Coming soon |
+| Multi-view generation with vehicle trajectory control | [Supported](./diffusion/nemo/post_training/README.md) | Coming soon |
+| Changing the Video Tokenizer | Coming soon | [Supported](./autoregressive/nemo/post_training/tokenizer/README.md) |

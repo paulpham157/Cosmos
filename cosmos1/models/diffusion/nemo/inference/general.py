@@ -15,10 +15,12 @@
 
 import argparse
 import os
+from functools import partial
 
 import numpy as np
 import torch
 from huggingface_hub import snapshot_download
+from megatron.core.dist_checkpointing.validation import StrictHandling
 from megatron.core.tensor_parallel.random import model_parallel_cuda_manual_seed
 from nemo import lightning as nl
 from nemo.lightning.megatron_parallel import MegatronParallel
@@ -266,6 +268,8 @@ def setup_diffusion_pipeline(args):
     fabric = trainer.to_fabric()
     fabric.strategy.checkpoint_io.save_ckpt_format = "zarr"
     fabric.strategy.checkpoint_io.validate_access_integrity = False
+    fabric.strategy.checkpoint_io.load_checkpoint = partial(fabric.strategy.checkpoint_io.load_checkpoint, strict=False)
+    StrictHandling.requires_global_app_metadata = staticmethod(lambda val: False)
     model = fabric.load_model(args.nemo_checkpoint, dit_model).to(device="cuda", dtype=torch.bfloat16)
 
     # Set up diffusion pipeline

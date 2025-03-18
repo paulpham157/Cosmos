@@ -71,6 +71,12 @@ model_names = [
         "Cosmos-0.1-Tokenizer-DV8x16x16",
         "Cosmos-1.0-Tokenizer-CV8x8x8",
         "Cosmos-1.0-Tokenizer-DV8x16x16",
+        "Cosmos-1.0-Tokenizer-CI8x8-LowRes",
+        "Cosmos-1.0-Tokenizer-CI16x16-LowRes",
+        "Cosmos-1.0-Tokenizer-DI8x8-LowRes",
+        "Cosmos-1.0-Tokenizer-DI16x16-LowRes",
+        "Cosmos-1.0-Tokenizer-CV4x8x8-LowRes",
+        "Cosmos-1.0-Tokenizer-DV4x8x8-LowRes",
 ]
 for model_name in model_names:
     hf_repo = "nvidia/" + model_name
@@ -161,8 +167,7 @@ In PyTorch mode, the model is constructed from the native network definition scr
 For example, to instantiate a `Cosmos-DI` with a spatial compression factor of 8, append the following command line arguments:
 
 - `--mode=torch`
-- `--tokenizer_type=DI`
-- `--spatial_compression=8`
+- `--tokenizer_type=DI8x8`
 
 Note that the `--checkpoint_enc`, `--checkpoint_dec`, and `--checkpoint` should still refer to JIT files. <br />
 The necessary `state_dict`s will be extracted from the loaded JIT models to initialize the weights of the constructed native PyTorch model.
@@ -173,8 +178,7 @@ model_name="Cosmos-0.1-Tokenizer-DI8x8"
 python3 -m cosmos1.models.tokenizer.inference.image_cli \
     --image_pattern 'cosmos1/models/tokenizer/test_data/*.png' \
     --mode=torch \
-    --tokenizer_type=DI \
-    --spatial_compression=8 \
+    --tokenizer_type=DI8x8 \
     --checkpoint_enc checkpoints/${model_name}/encoder.jit \
     --checkpoint_dec checkpoints/${model_name}/decoder.jit
 ```
@@ -182,9 +186,7 @@ python3 -m cosmos1.models.tokenizer.inference.image_cli \
 To instantiate a `Cosmos-CV` with a temporal factor of 8 and a spatial compression factor of 8, append the following command line arguments:
 
 - `--mode=torch`
-- `--tokenizer_type=CV`
-- `--temporal_compression=8`
-- `--spatial_compression=8`
+- `--tokenizer_type=CV8x8x8`
 
 ```bash
 # Autoencoding videos using `Cosmos-CV` with a compression rate of 8x8x8.
@@ -192,13 +194,25 @@ model_name="Cosmos-1.0-Tokenizer-CV8x8x8"
 python3 -m cosmos1.models.tokenizer.inference.video_cli \
     --video_pattern 'cosmos1/models/tokenizer/test_data/*.mp4' \
     --mode=torch \
-    --tokenizer_type=CV \
-    --temporal_compression=8 \
-    --spatial_compression=8 \
+    --tokenizer_type=CV8x8x8 \
     --checkpoint_enc checkpoints/${model_name}/encoder.jit \
     --checkpoint_dec checkpoints/${model_name}/decoder.jit
 ```
 
+Similarly, to instantiate a `Cosmos-CV4x8x8-LowRes`, append the following command line arguments and the corresponding jit compiled ckpts:
+- `--mode=torch`
+- `--tokenizer_type=CV4x8x8-LowRes`
+
+```bash
+# Autoencoding videos using `Cosmos-CV` with a compression rate of 8x8x8.
+model_name="Cosmos-1.0-Tokenizer-CV4x8x8-LowRes"
+python3 -m cosmos1.models.tokenizer.inference.video_cli \
+    --video_pattern 'cosmos1/models/tokenizer/test_data/*.mp4' \
+    --mode=torch \
+    --tokenizer_type=CV4x8x8-LowRes \
+    --checkpoint_enc checkpoints/${model_name}/encoder.jit \
+    --checkpoint_dec checkpoints/${model_name}/decoder.jit
+```
 ## Inference & dataset tokenization with NeMo (JIT/TensorRT)
 TensorRT inference is coming soon, which will be available in [Cosmos Tokenizer README within the NeMo repository](https://github.com/NVIDIA/NeMo/tree/main/nemo/collections/common/video_tokenizers)
 

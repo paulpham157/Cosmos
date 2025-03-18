@@ -16,7 +16,6 @@
 import gc
 import os
 from argparse import ArgumentParser
-from typing import List
 
 import imageio
 import nemo.lightning as nl
@@ -30,11 +29,13 @@ from nemo.collections.llm.inference.base import _setup_trainer_and_restore_model
 from nemo.lightning import io
 from nemo.lightning.ckpt_utils import ckpt_to_context_subdir
 
+from cosmos1.models.autoregressive.nemo.inference.general import MockMCoreTokenizer
 from cosmos1.models.autoregressive.nemo.inference.inference_controller import CosmosTextGenerationController
 from cosmos1.models.autoregressive.nemo.utils import run_diffusion_decoder_model
 from cosmos1.models.autoregressive.tokenizer.discrete_video import DiscreteVideoFSQJITTokenizer
 from cosmos1.models.autoregressive.utils.inference import load_vision_input
 from cosmos1.models.common.t5_text_encoder import CosmosT5TextEncoder
+from cosmos1.models.guardrail.common import presets as guardrail_presets
 from cosmos1.utils import log
 
 torch._C._jit_set_texpr_fuser_enabled(False)
@@ -55,23 +56,6 @@ def get_text_prompt_embeddings(args):
     gc.collect()
     torch.cuda.empty_cache()
     return prompt_embedding
-
-
-class CosmosMCoreTokenizerWrappper:
-    """
-    A small dummy wrapper to pass into the text generation controller.
-    """
-
-    def __init__(self):
-        self.tokenizer = None
-        self.eod = -1
-        self.vocab_size = 64064
-
-    def detokenize(self, tokens: List[int], remove_special_tokens: bool = False):
-        return tokens
-
-    def tokenize(self, prompt: List[int]):
-        return prompt
 
 
 def main(args):
@@ -150,7 +134,7 @@ def main(args):
     inference_wrapped_model = model.get_inference_wrapper(torch.bfloat16, inference_batch_times_seqlen_threshold=1000)
 
     text_generation_controller = CosmosTextGenerationController(
-        inference_wrapped_model=inference_wrapped_model, tokenizer=CosmosMCoreTokenizerWrappper()
+        inference_wrapped_model=inference_wrapped_model, tokenizer=MockMCoreTokenizer(64064)
     )
 
     mcore_engine = MCoreEngine(text_generation_controller=text_generation_controller, max_batch_size=1)

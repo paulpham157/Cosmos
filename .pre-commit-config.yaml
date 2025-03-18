@@ -45,9 +45,9 @@ repos:
     rev: v4.0.1
     hooks:
       - id: trailing-whitespace
-        exclude: ^tests/.*/fixtures/.*
+        exclude: ^tests/.*/fixtures/.*|cosmos1/models/diffusion/nemo/post_training/multicamera/.*
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
-        exclude: ^tests/.*/fixtures/.*
+        exclude: ^tests/.*/fixtures/.*|cosmos1/models/diffusion/nemo/post_training/multicamera/.*
       - id: check-added-large-files
         args: ['--maxkb=2000']

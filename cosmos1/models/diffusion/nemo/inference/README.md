@@ -23,11 +23,11 @@ Cosmos Diffusion-based WFMs can also be post-trained for a variety of Physical A
 | Post-training Task      | Inference Support Status |
 |-------------------------|--------------------|
 | General post-training   | **Supported**      |
-| Instruction control     | **Coming Soon**    |
-| Action control          | **Coming Soon**    |
-| Camera control          | **Coming Soon**    |
-| Multi-view generation   | **Coming Soon**    |
-| Multi-view generation with vehicle trajectory control | **Coming Soon** |
+| Instruction control     | **Supported**    |
+| Action control          | **Supported**      |
+| Camera control          | **Supported**    |
+| Multi-view generation   | **Supported**    |
+| Multi-view generation with vehicle trajectory control | **Supported** |
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ Run the following command to download and start the container:
 ```bash
 docker run --ipc=host -it --gpus=all \
   -v $PATH_TO_COSMOS_REPO:/workspace/Cosmos \
-  nvcr.io/nvidia/nemo:cosmos.1.0.1 bash
+  nvcr.io/nvidian/nemo:cosmos.1.0.2 bash
 ```
 
 ### 4. Download Checkpoints
@@ -299,3 +299,102 @@ Generated videos are saved at the location configured in the `SAVE_PATH` paramet
 
 > **Disclaimer**:
 > The post-training example in this documentation is a demonstration of general post-training and not a guaranteed recipe for success. Post-training outcomes depend heavily on the quality and diversity of the dataset. To achieve good results, ensure your dataset is clean, well-structured, diverse, and properly labeled. Poorly prepared data can lead to issues like overfitting, bias, or poor performance. Carefully curate your dataset to reflect the desired use case for reliable results.
+
+## Run Inference Script on Action Control Models
+
+Inference on the tokenized dataset is supported. First generate a post-trained [action control checkpoint](../post_training/README.md).
+
+1. Run the following command to download and start the container:
+```bash
+   docker run --ipc=host -it --gpus=all \
+    -v <path/to/Cosmos>:/opt/Cosmos \
+    -v <path/to/store/checkpoints>:/root/.cache/huggingface \
+    -v <path/to/action/control/checkpoint>:/checkpoint/ \
+    nvcr.io/nvidian/nemo:cosmos.1.0.2
+   ```
+
+2. Set the following environment variables:
+```bash
+   export HF_HOME=/root/.cache/huggingface
+   export HF_TOKEN=<your/HF/access/token>
+   export NUM_DEVICES=<num_gpus>
+   pip install -e /opt/Cosmos
+   ```
+
+3. In the `/opt` directory, run the inference script, choosing the index of the desired frame to visualize. Set the model size to one of 14B or 7B depending on the size of the post-trained model.
+```bash
+   cd /opt
+   torchrun --nproc_per_node=$NUM_DEVICES \
+   Cosmos/cosmos1/models/diffusion/nemo/inference/action_control_infer.py \
+   /checkpoint/weights \
+   --dataset-split val \
+   --index <index> \
+   --output-dir outputs/ \
+   --tensor-model-parallel-size 4 \
+   --context-parallel-size 2
+   --model-size <model_size>
+  ```
+
+
+## Run inference Script on Camera-Control Models
+
+To run inference with a Camera-Control model, it is assumed users have first fine-tuned the Video2World base model for Camera-Control using the instructions provided in the [post-training README](../post_training/README.md). With a camera-control checkpoint generated during post-training, users can sample from this model and generate videos conditioned on camera intrinsics and extrinsics. This can be done as follows:
+
+```bash
+export NVTE_FUSED_ATTN=0
+export CUDA_DEVICE_MAX_CONNECTIONS=1
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export NUM_DEVICES=1
+export CUDA_VISIBLE_DEVICES=$(seq -s, 0 $((NUM_DEVICES - 1)))
+
+export NEMO_CHECKPOINT=nemo_experiments/cosmos_diffusion_7b_cameractrl_finetune/default/2025-03-17_15-57-48/checkpoints/epoch=23-step=399/weights
+
+export PROMPT="<Supply a prompt here>"
+export CONDITIONED_VIDEO="<Supply a path to a mp4 file>"
+export CAMERA_EXTRINSICS="<Supply a path to a transforms.json file that contains camera extrinsics and intrisics>"
+
+torchrun --nproc_per_node=1 cosmos1/models/diffusion/nemo/inference/camera_ctrl.py \
+	--model Cosmos-1.0-Diffusion-7B-Video2World \
+	--nemo_checkpoint "$NEMO_CHECKPOINT" \
+	--cp_size 1 \
+	--num_devices 1 \
+	--video_save_path "camera_control_inference.mp4" \
+	--guidance 7 \
+	--seed 1 \
+	--prompt "$PROMPT" \
+	--conditioned_image_or_video_path "$CONDITIONED_IMAGE_OR_VIDEO" \
+	--camera_extrinsics_path "$CAMERA_EXTRINSICS" \
+	--num_video_frames 57 \
+	--num_input_frames 9
+
+```
+
+An example for which we have verified camera control inference is the video and camera extrinsics corresponding to the `72e790b8c85027da48fa8c68142adfbc35c3ad8f2d48fcdf5bfb916927c987bd` hash within the `DL3DV-ALL-4K` subset of DL3DV.
+
+
+### Multicamera Validation
+
+1. Install necessary dependencies
+   ```bash
+   pip install lru-dict pyquaternion git+https://github.com/NVIDIA/NeMo-Run.git@f07877f80dbfc91c4d37683864cf2552b96d62f1
+   pip install -U moviepy==1.0.3
+   ```
+
+2. Modify Environment Variables
+   ```bash
+   export PYTHONPATH=$PYTHONPATH:/opt/NeMo/nemo/collections/physicalai/datasets/dataverse
+   export NVTE_FUSED_ATTN=0
+   export CUDA_DEVICE_MAX_CONNECTIONS=1
+   export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+   export HF_TOKEN={'Huggingface Token'}
+   export HF_HOME={'Path to Huggingface Cache'}
+   export XDG_CACHE_HOME={'Dataset Cache'}
+   export PYTHONPATH=$PYTHONPATH:{'Path to Cosmos'}
+   export WANDB_API_KEY={'api key'}
+   export WANDB_PROJECT={'project name'}
+   ```
+
+3. Run Multicamera Script
+   ```bash
+   torchrun --nproc_per_node=8 cosmos1/models/diffusion/nemo/inference/validate_multicamera.py
+   ```

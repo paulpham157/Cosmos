@@ -40,3 +40,8 @@ class LatentDiffusionDecoderModelConfig(DefaultModelConfig):
     diffusion_decoder_cond_sigma_high: float = None
     diffusion_decoder_corrupt_prob: float = None
     condition_on_tokenizer_corruptor_token: bool = False
+
+
+@attrs.define(slots=False)
+class MultiCameraConfig(DefaultModelConfig):
+    n_cameras: int = 4

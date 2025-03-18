@@ -46,7 +46,7 @@ Run the following command to download and start the container:
    ```bash
    docker run --ipc=host -it --gpus=all \
     -v $PATH_TO_COSMOS_REPO:/workspace/Cosmos \
-    nvcr.io/nvidia/nemo:24.12.01 bash
+    nvcr.io/nvidian/nemo:cosmos.1.0.2 bash
    ```
 
 ### 4. Download Checkpoints
@@ -82,6 +82,7 @@ energon prepare . --num-workers 8 --shuffle-tars
 Interactively select dataset type `ImageWebdataset` and specify the type `mp4`. Below is an example of the interactive setup:
 
 ```
+# energon prepare . --num-workers 8 --shuffle-tars
 Found 2925 tar files in total. The first and last ones are:
 - 000000.tar
 - 002924.tar
@@ -89,26 +90,26 @@ If you want to exclude some of them, cancel with ctrl+c and specify an exclude f
 Please enter a desired train/val/test split like "0.5, 0.2, 0.3" or "8,1,1": 99,1,0
 Indexing shards  [####################################]  2925/2925
 Sample 0, keys:
-- mp4
+ - mp4
 Sample 1, keys:
-- mp4
+ - mp4
 Found the following part types in the dataset: mp4
 Do you want to create a dataset.yaml interactively? [Y/n]:
-The following dataset classes are available:
-0. CaptioningWebdataset
-1. CrudeWebdataset
-2. ImageClassificationWebdataset
-3. ImageWebdataset
-4. InterleavedWebdataset
-5. MultiChoiceVQAWebdataset
-6. OCRWebdataset
-7. SimilarityInterleavedWebdataset
-8. TextWebdataset
-9. VQAOCRWebdataset
-10. VQAWebdataset
-11. VidQAWebdataset
-Please enter a number to choose a class: 3
-The dataset you selected uses the following sample type:
+The following sample types are available:
+0. CaptioningSample
+1. ImageClassificationSample
+2. ImageSample
+3. InterleavedSample
+4. MultiChoiceVQASample
+5. OCRSample
+6. Sample
+7. SimilarityInterleavedSample
+8. TextSample
+9. VQASample
+10. VidQASample
+11. Crude sample (plain dict for cooking)
+Please enter a number to choose a class: 2
+The sample type you selected:
 
 @dataclass
 class ImageSample(Sample):
@@ -117,16 +118,14 @@ class ImageSample(Sample):
     #: The input image tensor in the shape (C, H, W)
     image: torch.Tensor
 
-Do you want to set a simple field_map[Y] (or write your own sample_loader [n])? [Y/n]:
+Do you want to set a simple field_map[Y] (or write your own sample_loader [n])? [Y/n]: Y
 
 For each field, please specify the corresponding name in the WebDataset.
 Available types in WebDataset: mp4
 Leave empty for skipping optional field
 You may also access json fields e.g. by setting the field to: json[field][field]
 You may also specify alternative fields e.g. by setting to: jpg,png
-Please enter the field_map for ImageWebdataset:
-Please enter a webdataset field name for 'image' (<class 'torch.Tensor'>):
-That type doesn't exist in the WebDataset. Please try again.
+Please enter the field_map for ImageSample:
 Please enter a webdataset field name for 'image' (<class 'torch.Tensor'>): mp4
 Done
 ```
@@ -140,19 +139,9 @@ The third step is to post-train the Cosmos tokenizer using the NeMo Framework.
 
 Complete the following steps to post-train the Cosmos tokenizer Cosmos-1.0-Tokenizer-CV8x8x8.
 
-1. Install the dependencies under cosmos1/models/tokenizer/nemo:
+1. Run the following command to post-train Cosmos-1.0-Tokenizer-CV8x8x8:
    ```bash
-    pip install megatron-energon==4.0.0 pyav
-    pip install git+https://github.com/NVIDIA/NeMo-Run.git
-    pip install moviepy==1.0.3 imageio
-
-    # switch to NeMo branch supporting tokenizer post-training
-    cd /opt/NeMo && git fetch origin cosmos_tokenizer && git checkout cosmos_tokenizer
-   ```
-
-2. Run the following command to post-train Cosmos-1.0-Tokenizer-CV8x8x8:
-   ```bash
-    export CKPT_PTH="<path/to/your/HF/checkpoints/folder>"
+    export CKPT_PTH="<path/to/your/HF/checkpoints/folder>" # ${HF_HOME}/hub/models--nvidia--Cosmos-1.0-Tokenizer-CV8x8x8/snapshots/01f87fd67cebc32f1a2fd9e99d4e9614a6b3743b
     export DATA="<path/to/your/data>"
 
     # Optionally, you can monitor training progress with Weights and Biases (wandb).

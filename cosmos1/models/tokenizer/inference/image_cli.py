@@ -26,8 +26,7 @@ Usage:
     python3 -m cosmos1.models.tokenizer.inference.image_cli \
         --image_pattern 'path/to/input/folder/*.jpg' \
         --mode torch \
-        --tokenizer_type CI \
-        --spatial_compression 8 \
+        --tokenizer_type CI8x8 \
         --checkpoint_enc ./checkpoints/<model-name>/encoder.jit \
         --checkpoint_dec ./checkpoints/<model-name>/decoder.jit
 """
@@ -80,15 +79,18 @@ def _parse_args() -> tuple[Namespace, dict[str, Any]]:
     parser.add_argument(
         "--tokenizer_type",
         type=str,
-        choices=["CI", "DI"],
+        default=None,
+        choices=[
+            "CI8x8",
+            "DI8x8",
+            "CI16x16",
+            "DI16x16",
+            "CI8x8-LowRes",
+            "CI16x16-LowRes",
+            "DI8x8-LowRes",
+            "DI16x16-LowRes",
+        ],
         help="Specifies the tokenizer type.",
-    )
-    parser.add_argument(
-        "--spatial_compression",
-        type=int,
-        choices=[8, 16],
-        default=8,
-        help="The spatial compression factor.",
     )
     parser.add_argument(
         "--mode",
@@ -127,8 +129,8 @@ def _parse_args() -> tuple[Namespace, dict[str, Any]]:
 
 logging.info("Initializes args ...")
 args = _parse_args()
-if args.mode == "torch" and args.tokenizer_type not in ["CI", "DI"]:
-    logging.error("'torch' backend requires the tokenizer_type of 'CI' or 'DI'.")
+if args.mode == "torch" and args.tokenizer_type is None:
+    logging.error("'torch' backend requires the tokenizer_type to be specified.")
     sys.exit(1)
 
 
@@ -140,10 +142,10 @@ def _run_eval() -> None:
         return
 
     if args.mode == "torch":
-        tokenizer_config = TokenizerConfigs[args.tokenizer_type].value
-        tokenizer_config.update(dict(spatial_compression=args.spatial_compression))
+        _type = args.tokenizer_type.replace("-", "_")
+        _config = TokenizerConfigs[_type].value
     else:
-        tokenizer_config = None
+        _config = None
 
     logging.info(
         f"Loading a torch.jit model `{os.path.dirname(args.checkpoint or args.checkpoint_enc or args.checkpoint_dec)}` ..."
@@ -152,7 +154,7 @@ def _run_eval() -> None:
         checkpoint=args.checkpoint,
         checkpoint_enc=args.checkpoint_enc,
         checkpoint_dec=args.checkpoint_dec,
-        tokenizer_config=tokenizer_config,
+        tokenizer_config=_config,
         device=args.device,
         dtype=args.dtype,
     )

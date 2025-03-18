@@ -19,17 +19,11 @@ import nemo_run as run
 import pytorch_lightning as pl
 import torch.distributed
 import torch.utils.checkpoint
-from einops import rearrange
-from megatron.energon import DefaultTaskEncoder
 from nemo import lightning as nl
 from nemo.collections import llm
 from nemo.collections.diffusion.data.diffusion_energon_datamodule import DiffusionDataModule
-from nemo.collections.physicalai.tokenizer.augmentors import TemporalRandomCrop
-from nemo.collections.physicalai.tokenizer.data.augmentors.image.cropping import RandomCrop
-from nemo.collections.physicalai.tokenizer.data.augmentors.image.normalize import Normalize
-from nemo.collections.physicalai.tokenizer.data.utils import get_crop_size_info
 from nemo.collections.physicalai.tokenizer.tokenizer_model import MASK_KEY, VIDEO_KEY, TokenizerModel
-from nemo.lightning.io.mixin import IOMixin
+from nemo.collections.physicalai.tokenizer.train_tokenizer import ImageTaskEncoder
 from nemo.lightning.pytorch.callbacks import ModelCheckpoint, PreemptionCallback
 from nemo.lightning.pytorch.optim.pytorch import PytorchOptimizerModule
 from nemo.lightning.pytorch.plugins import MegatronDataSampler
@@ -126,46 +120,6 @@ class FakeDataModule(pl.LightningDataModule):
         )
 
 
-class ImageTaskEncoder(DefaultTaskEncoder, IOMixin):
-    """Image task encoder that crops and normalizes the image."""
-
-    def __init__(
-        self, *, encoded_sample_type=None, raw_batch_type=None, batch_type=None, crop_height=256, temporal_crop=49
-    ):
-        super().__init__(encoded_sample_type=encoded_sample_type, raw_batch_type=raw_batch_type, batch_type=batch_type)
-
-        crop_sizes = get_crop_size_info(crop_height)
-        self.spatial_crop = RandomCrop(input_keys=[VIDEO_KEY], args={"size": crop_sizes})
-        self.temporal_crop = TemporalRandomCrop(temporal_crop)
-        self.normalize = Normalize(input_keys=[VIDEO_KEY], args={"mean": 0.5, "std": 0.5})
-
-    def encode_sample(self, sample):
-        """
-        Encode a single image sample by cropping and shifting its values.
-
-        Args:
-            sample: An image sample.
-
-        Returns:
-            The transformed image sample.
-        """
-        sample = super().encode_sample(sample)
-        sample.image.frames = sample.image.frames[:33, :, :256, :256]
-        sample.image.frames = rearrange(sample.image.frames, "t c h w -> c t h w")
-
-        mask_t = torch.ones_like(
-            sample.image.frames, requires_grad=False, dtype=torch.bfloat16, device=sample.image.frames.device
-        )
-
-        data = {VIDEO_KEY: sample.image.frames, MASK_KEY: mask_t, "aspect_ratio": "1,1"}
-        data = self.spatial_crop(data)
-        begin_index, end_index = self.temporal_crop(data[VIDEO_KEY].shape[1])
-        data[VIDEO_KEY] = data[VIDEO_KEY][:, begin_index:end_index]
-        data = self.normalize(data)
-        data[VIDEO_KEY] = data[VIDEO_KEY].to(torch.bfloat16)
-        return data
-
-
 @run.cli.factory(target=llm.train)
 def train_tokenizer() -> run.Partial:
     return run.Partial(
@@ -181,7 +135,7 @@ def train_tokenizer() -> run.Partial:
             task_encoder=run.Config(ImageTaskEncoder),
             global_batch_size=8,
             micro_batch_size=1,
-            num_workers=1,
+            num_workers=8,
         ),
         trainer=run.Config(
             nl.Trainer,

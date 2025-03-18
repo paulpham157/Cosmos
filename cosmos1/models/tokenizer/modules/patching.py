@@ -34,7 +34,7 @@ _WAVELETS = {
     "haar": torch.tensor([0.7071067811865476, 0.7071067811865476]),
     "rearrange": torch.tensor([1.0, 1.0]),
 }
-_PERSISTENT = False
+_PERSISTENT = True
 
 
 class Patcher(torch.nn.Module):

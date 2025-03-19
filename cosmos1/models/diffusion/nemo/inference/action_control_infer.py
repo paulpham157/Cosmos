@@ -166,7 +166,7 @@ def run_diffusion_inference(
         for i, text in enumerate(text_labels):
             ax[i].set_title(text)
 
-        output_path = Path(output_dir) / f"diffsusion_control_{dataset_split.value}_{index}.png"
+        output_path = Path(output_dir) / f"diffusion_control_{dataset_split.value}_{index}.png"
         output_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(output_path)
 

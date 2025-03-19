@@ -227,7 +227,7 @@ First generate a post-trained [action control checkpoint](../post_training/actio
     -v $PATH_TO_COSMOS_REPO:/workspace/Cosmos \
     -v <path/to/store/checkpoints>:/root/.cache/huggingface \
     -v <path/to/action/control/checkpoint>:/checkpoint/ \
-    nvcr.io/nvidia/nemo:25.02.rc1 bash
+    nvcr.io/nvidia/nemo:25.02.rc3 bash
    ```
 
 2. Set the following environment variables:

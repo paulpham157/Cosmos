@@ -159,7 +159,7 @@ def main(args):
     result = list(results)[0]
 
     prompt_tokens = torch.tensor(result.prompt_tokens).cuda()
-    prompt_tokens[prompt_tokens == -1] = result.generated_tokens
+    prompt_tokens = torch.cat((prompt_tokens, result.generated_tokens))
 
     indices_tensor = prompt_tokens.unsqueeze(dim=0)
     indices_tensor = rearrange(

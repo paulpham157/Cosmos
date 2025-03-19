@@ -54,7 +54,7 @@ Run the following command to download and start the container:
    ```bash
    docker run --ipc=host -it --gpus=all \
     -v $PATH_TO_COSMOS_REPO:/workspace/Cosmos \
-    nvcr.io/nvidia/nemo:25.02.rc1 bash
+    nvcr.io/nvidia/nemo:25.02.rc3 bash
    ```
 
 ### 4. Download Checkpoints

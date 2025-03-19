@@ -156,8 +156,8 @@ def main(args):
     result = list(results)[0]
 
     prompt_tokens_with_bov = torch.tensor(result.prompt_tokens).cuda()
-    prompt_tokens_with_bov[prompt_tokens_with_bov == -1] = result.generated_tokens
-    indices_tensor = prompt_tokens_with_bov.unsqueeze(dim=0)[:, 1:]  # To remove BOV Token
+    all_tokens = torch.cat((prompt_tokens_with_bov, result.generated_tokens))
+    indices_tensor = all_tokens.unsqueeze(dim=0)[:, 1:]  # To remove BOV Token
     indices_tensor = rearrange(
         indices_tensor,
         "B (T H W) -> B T H W",

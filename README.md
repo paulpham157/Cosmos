@@ -16,12 +16,9 @@ NVIDIA Cosmos now includes three subprojects:
 ### Cosmos-Transfer1: https://github.com/nvidia-cosmos/cosmos-transfer1
 - Cosmos-Transfer1 is a world-to-world transfer model designed to bridge the perceptual divide between simulated and real-world environments.
 
-<!-- <video src="https://github.com/user-attachments/assets/c8635bd6-5a41-42f8-a0e7-c27b9042744f">
+<video src="https://github.com/user-attachments/assets/cf10262d-e8db-4996-813d-914332f3e00e">
   Your browser does not support the video tag.
 </video>
-<video src="https://github.com/user-attachments/assets/0d658ad8-f8da-4192-b771-25fdc8e3e330">
-  Your browser does not support the video tag.
-</video> -->
 
 ### Cosmos-Reason1: https://github.com/nvidia-cosmos/cosmos-reason1
 - Cosmos-Reason1 models understand the physical common sense and generate appropriate embodied decisions in natural language through long chain-of-thought reasoning processes.

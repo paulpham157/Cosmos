@@ -36,7 +36,7 @@ The NeMo Framework supports the following Cosmos Autoregressive (AR) models for 
    ```bash
    docker run --ipc=host -it --gpus=all \
      -v $PATH_TO_COSMOS_REPO:/workspace/Cosmos \
-     nvcr.io/nvidia/nemo:25.02rc0 bash
+     nvcr.io/nvidia/nemo:25.02rc3 bash
    ```
 
 4. **Install Python Dependencies**

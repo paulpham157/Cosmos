@@ -54,7 +54,7 @@ Run the following command to download and start the container:
    ```bash
    docker run --ipc=host -it --gpus=all \
     -v $PATH_TO_COSMOS_REPO:/workspace/Cosmos \
-    nvcr.io/nvidia/nemo:25.02.rc1 bash
+    nvcr.io/nvidia/nemo:25.02.rc3 bash
    ```
 
 ### 4. Download Checkpoints
@@ -92,7 +92,7 @@ Complete the following steps to run inference on the 4B model.
 
    ```bash
    # Install required packages
-   pip install --no-cache-dir imageio[ffmpeg] pyav iopath better_profanity peft git+https://github.com/NVlabs/Pytorch_Retinaface.git@b843f45
+   pip install --no-cache-dir imageio[ffmpeg] pyav iopath better_profanity peft
 
    export HF_TOKEN="<your/HF/access/token>"
    export HF_HOME="<path/to/store/checkpoints>"

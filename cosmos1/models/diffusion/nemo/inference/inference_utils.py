@@ -20,6 +20,9 @@ import numpy as np
 import torch
 
 from cosmos1.models.autoregressive.model import AutoRegressiveModel
+from cosmos1.models.diffusion.config.ctrl.augmentors import BilateralOnlyBlurAugmentorConfig
+from cosmos1.models.diffusion.datasets.augmentors.control_input import get_augmentor_for_eval
+from cosmos1.models.diffusion.inference.inference_utils import read_video_or_image_into_frames_BCTHW
 from cosmos1.models.diffusion.prompt_upsampler.text2world_prompt_upsampler_inference import (
     create_prompt_upsampler,
     run_chat_completion,
@@ -154,3 +157,68 @@ def save_video(
     }
 
     imageio.mimsave(video_save_path, grid, "mp4", **kwargs)
+
+
+def get_ctrl_batch_nemo(
+    model,
+    data_batch,
+    num_video_frames,
+    input_image_or_video_path,
+    control_weight,
+    blur_str,
+    no_preserve_color,
+    state_shape,
+    spatial_compression_factor,
+    hint_key="control_input_canny",
+    tokenizer=None,
+):
+    """Prepare complete input batch for video generation including latent dimensions.
+
+    Args:
+        model: Diffusion model instance
+
+    Returns:
+        - data_batch (dict): Complete model input batch
+    """
+
+    H, W = (
+        state_shape[-2] * spatial_compression_factor,
+        state_shape[-1] * spatial_compression_factor,
+    )
+
+    input_path_format = input_image_or_video_path.split(".")[-1]
+    input_frames = read_video_or_image_into_frames_BCTHW(
+        input_image_or_video_path,
+        input_path_format=input_path_format,
+        H=H,
+        W=W,
+    )[:, :, :num_video_frames]
+    T = input_frames.shape[2]
+    if T < num_video_frames:
+        pad_frames = input_frames[:, :, -1:].repeat(1, 1, num_video_frames - T, 1, 1)
+        input_frames = torch.cat([input_frames, pad_frames], dim=2)
+
+    add_control_input = get_augmentor_for_eval(
+        input_key="video",
+        output_key=hint_key,
+        preset_strength=blur_str,
+        blur_config=BilateralOnlyBlurAugmentorConfig[blur_str],
+    )
+    if no_preserve_color:
+        model.config.hint_mask = [True, False]
+    else:
+        model.config.hint_mask = [False, True]
+
+    data_batch["hint_key"] = hint_key
+    data_batch["video"] = ((input_frames.cpu().float().numpy()[0] + 1) / 2 * 255).astype(np.uint8)
+    control_input = add_control_input(data_batch)[hint_key]
+
+    data_batch["video"] = input_frames
+    data_batch[hint_key] = control_input[None].bfloat16().cuda() / 255 * 2 - 1
+    if tokenizer is not None:
+        data_batch["latent_hint"] = model.encode_latent(data_batch, tokenizer)
+    else:
+        data_batch["latent_hint"] = model.encode_latent(data_batch)
+    data_batch["control_weight"] = control_weight
+
+    return data_batch

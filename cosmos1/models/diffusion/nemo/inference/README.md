@@ -161,6 +161,19 @@ Complete the following steps to generate a new output video conditioned on an in
       --enable_prompt_upsampler
    ```
 
+For Control2World, please use the following command instead:
+```bash
+export CTRL_MODEL_DIR=...
+torchrun --nproc_per_node=$NUM_DEVICES cosmos1/models/diffusion/nemo/inference/control2world.py \
+  --cosmos_assets_dir ./checkpoints \
+  --conditioned_image_or_video_path $CONDITIONED_IMAGE_OR_VIDEO \
+  --num_devices $NUM_DEVICES \
+  --cp_size $NUM_DEVICES \
+  --prompt "$PROMPT" \
+  --control_weight 1 \
+  --ctrl_model_dir $CTRL_MODEL_DIR
+```
+
 ### Run the Inference Script with Post-trained Models
 
 Create a post-trained model first, by using the instructions [here](../post_training/README.md)

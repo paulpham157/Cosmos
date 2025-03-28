@@ -21,15 +21,15 @@ Being a minimalist, we have these individual models in individual repositories u
 | Example Model Behavior |
 |--------|
 | [Cosmos-Predict Text2World](https://github.com/nvidia-cosmos/cosmos-predict1) |
-| <video width="1080" controls> <source src="assets/cosmos-predict1/predict1_text2world.mov" type="video/quicktime"> Your browser does not support the video tag.</video>|
+| [![Cosmos-Predict Text2World](assets/cosmos-predict1/preview_text2world.gif)](assets/cosmos-predict1/predict1_text2world.mp4) |
 | [Cosmos-Predict Video2World](https://github.com/nvidia-cosmos/cosmos-predict1) |
-| <video width="1080" controls> <source src="assets/cosmos-predict1/predict1_video2world.mov" type="video/quicktime"> Your browser does not support the video tag. </video> |
+| [![Cosmos-Predict Video2World](assets/cosmos-predict1/preview_video2world.gif)](assets/cosmos-predict1/predict1_video2world.mp4) |
 | [Cosmos-Transfer LiDAR + HDMap Conditional Inputs -> World](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_lidarhdmap.mov" type="video/quicktime"> Your browser does not support the video tag. </video> |
+| [![Cosmos-Transfer LiDAR](assets/cosmos-transfer1/preview_lidarhdmap.gif)](assets/cosmos-transfer1/transfer1_lidarhdmap.mp4) |
 | [Cosmos-Transfer Multimodal Conditional Inputs -> World](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_lidarhdmap.mov" type="video/quicktime">   Your browser does not support the video tag. </video> |
+| [![Cosmos-Transfer Multimodal](assets/cosmos-transfer1/preview_multimodal.gif)](assets/cosmos-transfer1/transfer1_lidarhdmap.mp4) |
 | [Cosmos-Reason Physical AI Planning](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_multimodal.mov" type="video/quicktime">   Your browser does not support the video tag. </video> |
+| [![Cosmos-Reason Planning](assets/cosmos-reason1/preview_planning.gif)](assets/cosmos-transfer1/transfer1_multimodal.mp4) |
 
 ### Cosmos Publication
 

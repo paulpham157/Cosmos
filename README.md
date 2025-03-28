@@ -28,15 +28,15 @@ Being a minimalist, we have these individual models in individual repositories u
 | Example Model Behavior |
 |--------|
 | [Cosmos-Predict Text2World](https://github.com/nvidia-cosmos/cosmos-predict1) |
-| <video width="1080" controls> <source src="assets/cosmos-predict1/predict1_text2world.mp4" type="video/mp4"> Your browser does not support the video tag.</video>|
+| <video width="1080" controls> <source src="https://raw.githubusercontent.com/NVIDIA/Cosmos/main/assets/cosmos-predict1/predict1_text2world.mp4" type="video/mp4"> Your browser does not support the video tag.</video>|
 | [Cosmos-Predict Video2World](https://github.com/nvidia-cosmos/cosmos-predict1) |
-| <video width="1080" controls> <source src="assets/cosmos-predict1/predict1_video2world.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
+| <video width="1080" controls> <source src="https://raw.githubusercontent.com/NVIDIA/Cosmos/main/assets/cosmos-predict1/predict1_video2world.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
 | [Cosmos-Transfer LiDAR + HDMap Conditional Inputs -> World](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_lidarhdmap.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
+| <video width="1080" controls> <source src="https://raw.githubusercontent.com/NVIDIA/Cosmos/main/assets/cosmos-transfer1/transfer1_lidarhdmap.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
 | [Cosmos-Transfer Multimodal Conditional Inputs -> World](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_lidarhdmap.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
+| <video width="1080" controls> <source src="https://raw.githubusercontent.com/NVIDIA/Cosmos/main/assets/cosmos-transfer1/transfer1_lidarhdmap.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
 | [Cosmos-Reason Physical AI Planning](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_multimodal.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
+| <video width="1080" controls> <source src="https://raw.githubusercontent.com/NVIDIA/Cosmos/main/assets/cosmos-transfer1/transfer1_multimodal.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
 
 ### Cosmos Publication
 

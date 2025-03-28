@@ -19,7 +19,7 @@
 *.tar.gz
 *.zip
 # Media files
-*.mp4
+*.mp4 filter=lfs diff=lfs merge=lfs -text
 *.avi
 *.mov filter=lfs diff=lfs merge=lfs -text
 *.wmv

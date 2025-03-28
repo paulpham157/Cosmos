@@ -2,6 +2,13 @@
     <img src="assets/nvidia-cosmos-header.png" alt="NVIDIA Cosmos Header">
 </p>
 
+| Cosmos World Foundation Model Family||||
+| ----------------- | ----------------- | ----------------- | ----------------- |
+| [Cosmos-Predict1](https://github.com/nvidia-cosmos/cosmos-predict1) | [Code](https://github.com/nvidia-cosmos/cosmos-predict1) | [Models](https://huggingface.co/collections/nvidia/cosmos-predict1-67c9d1b97678dbf7669c89a7) | [Paper](https://arxiv.org/abs/2501.03575) |
+| [Cosmos-Transfer1](https://github.com/nvidia-cosmos/cosmos-transfer1) | [Code](https://github.com/nvidia-cosmos/cosmos-transfer1) | [Models](https://huggingface.co/collections/nvidia/cosmos-transfer1-67c9d328196453be6e568d3e) | [Paper](https://arxiv.org/abs/2503.14492) |
+| [Cosmos-Reason1](https://github.com/nvidia-cosmos/cosmos-reason1) | Coming soon  | Coming soon | [Paper](https://arxiv.org/abs/2503.15558) |
+| | | |
+
 [NVIDIA Cosmos](https://www.nvidia.com/cosmos/) is a developer-first world foundation model platform designed to help Physical AI developers build their Physical AI systems better and faster. Cosmos contains
 
 1. Pre-trained models (available via Hugging Face) under the [NVIDIA Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/) that allows free commercial use.
@@ -21,15 +28,15 @@ Being a minimalist, we have these individual models in individual repositories u
 | Example Model Behavior |
 |--------|
 | [Cosmos-Predict Text2World](https://github.com/nvidia-cosmos/cosmos-predict1) |
-| [![Cosmos-Predict Text2World](assets/cosmos-predict1/preview_text2world.gif)](assets/cosmos-predict1/predict1_text2world.mp4) |
+| <video width="1080" controls> <source src="assets/cosmos-predict1/predict1_text2world.mp4" type="video/mp4"> Your browser does not support the video tag.</video>|
 | [Cosmos-Predict Video2World](https://github.com/nvidia-cosmos/cosmos-predict1) |
-| [![Cosmos-Predict Video2World](assets/cosmos-predict1/preview_video2world.gif)](assets/cosmos-predict1/predict1_video2world.mp4) |
+| <video width="1080" controls> <source src="assets/cosmos-predict1/predict1_video2world.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
 | [Cosmos-Transfer LiDAR + HDMap Conditional Inputs -> World](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| [![Cosmos-Transfer LiDAR](assets/cosmos-transfer1/preview_lidarhdmap.gif)](assets/cosmos-transfer1/transfer1_lidarhdmap.mp4) |
+| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_lidarhdmap.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
 | [Cosmos-Transfer Multimodal Conditional Inputs -> World](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| [![Cosmos-Transfer Multimodal](assets/cosmos-transfer1/preview_multimodal.gif)](assets/cosmos-transfer1/transfer1_lidarhdmap.mp4) |
+| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_lidarhdmap.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
 | [Cosmos-Reason Physical AI Planning](https://github.com/nvidia-cosmos/cosmos-transfer1) |
-| [![Cosmos-Reason Planning](assets/cosmos-reason1/preview_planning.gif)](assets/cosmos-transfer1/transfer1_multimodal.mp4) |
+| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_multimodal.mp4" type="video/mp4"> Your browser does not support the video tag. </video> |
 
 ### Cosmos Publication
 

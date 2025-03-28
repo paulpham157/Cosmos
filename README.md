@@ -2,28 +2,63 @@
     <img src="assets/nvidia-cosmos-header.png" alt="NVIDIA Cosmos Header">
 </p>
 
-## GitHub project for NVIDIA Cosmos: https://github.com/nvidia-cosmos
+[NVIDIA Cosmos](https://www.nvidia.com/cosmos/) is a developer-first world foundation model platform designed to help Physical AI developers build their Physical AI systems better and faster. Cosmos contains
 
-NVIDIA Cosmos now includes three subprojects:
+1. Pre-trained models (available via Hugging Face) under the [NVIDIA Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/) that allows free commercial use.
+2. Pre-training, post-training, and inference code (available in native PyTorch) under the [Apache 2 License](https://www.apache.org/licenses/LICENSE-2.0).
 
-### Cosmos-Predict1: https://github.com/nvidia-cosmos/cosmos-predict1
-- Cosmos-Predict1 is a collection of general-purpose world foundation models for Physical AI that can be fine-tuned into customized world models for downstream applications.
+There are three main model families in Cosmos World Foundation Model Platform.
 
-<video src="https://github.com/user-attachments/assets/2ee7386b-8808-4db2-b38a-87ab679339f9">
-  Your browser does not support the video tag.
-</video>
+1. [Cosmos Predict](https://github.com/nvidia-cosmos/cosmos-predict1): a collection of general-purpose world models for future state prediction.
 
-### Cosmos-Transfer1: https://github.com/nvidia-cosmos/cosmos-transfer1
-- Cosmos-Transfer1 is a world-to-world transfer model designed to bridge the perceptual divide between simulated and real-world environments.
+2. [Cosmos Transfer](https://github.com/nvidia-cosmos/cosmos-transfer1): a collection of multimodal conditional world generation model for various domain transfer applications such as Sim2Real.
 
-<video src="https://github.com/user-attachments/assets/cf10262d-e8db-4996-813d-914332f3e00e">
-  Your browser does not support the video tag.
-</video>
+3. [Cosmos Reason](https://github.com/nvidia-cosmos/cosmos-reason1): a collection of Physical AI reasoning models for planning and critics.
+
+Being a minimalist, we have these individual models in individual repositories under [nvidia-github](https://github.com/nvidia-cosmos).
 
 
-### Cosmos-Reason1: https://github.com/nvidia-cosmos/cosmos-reason1
-- Cosmos-Reason1 models understand the physical common sense and generate appropriate embodied decisions in natural language through long chain-of-thought reasoning processes.
+| Example Model Behavior |
+|--------|
+| [Cosmos-Predict Text2World](https://github.com/nvidia-cosmos/cosmos-predict1) |
+| <video width="1080" controls> <source src="assets/cosmos-predict1/predict1_text2world.mov" type="video/quicktime"> Your browser does not support the video tag.</video>|
+| [Cosmos-Predict Video2World](https://github.com/nvidia-cosmos/cosmos-predict1) |
+| <video width="1080" controls> <source src="assets/cosmos-predict1/predict1_video2world.mov" type="video/quicktime"> Your browser does not support the video tag. </video> |
+| [Cosmos-Transfer LiDAR + HDMap Conditional Inputs -> World](https://github.com/nvidia-cosmos/cosmos-transfer1) |
+| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_lidarhdmap.mov" type="video/quicktime"> Your browser does not support the video tag. </video> |
+| [Cosmos-Transfer Multimodal Conditional Inputs -> World](https://github.com/nvidia-cosmos/cosmos-transfer1) |
+| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_lidarhdmap.mov" type="video/quicktime">   Your browser does not support the video tag. </video> |
+| [Cosmos-Reason Physical AI Planning](https://github.com/nvidia-cosmos/cosmos-transfer1) |
+| <video width="1080" controls> <source src="assets/cosmos-transfer1/transfer1_multimodal.mov" type="video/quicktime">   Your browser does not support the video tag. </video> |
 
------------------------------------------------------------
+### Cosmos Publication
 
-This repository will be archived soon. To check out the initial release of NVIDIA Cosmos, please follow [README_CES2025.md](README_CES2025.md).
+<table>
+  <tr>
+    <th width="40%">Paper Title</th>
+    <th width="30%">Summary</th>
+    <th width="15%">Authors</th>
+    <th width="15%">Date</th>
+  </tr>
+  <tr>
+    <td><a href="https://arxiv.org/abs/2503.15558">Cosmos-Reason1: From Physical Common Sense To Embodied Reasoning</a></td>
+    <td>Introduces a reasoning model for physical AI that combines common sense knowledge with embodied reasoning capabilities.</td>
+    <td>NVIDIA</td>
+    <td>2025-03-19</td>
+  </tr>
+  <tr>
+    <td><a href="https://arxiv.org/abs/2503.14492">Cosmos-Transfer1: Conditional World Generation with Adaptive Multimodal Control</a></td>
+    <td>Presents a multimodal model for conditional world generation with adaptive control mechanisms.</td>
+    <td>NVIDIA</td>
+    <td>2025-03-18</td>
+  </tr>
+  <tr>
+    <td><a href="https://arxiv.org/abs/2501.03575">Cosmos World Foundation Model Platform for Physical AI</a></td>
+    <td>Overview of the Cosmos platform, its architecture, and applications in physical AI systems. Introduction of Cosmos-Predict1 world models.</td>
+    <td>NVIDIA</td>
+    <td>2025-01-06</td>
+  </tr>
+</table>
+
+### Developer
+For native PyTorch developers, we provide native PyTorch training and inference scripts in [nvidia-github](https://github.com/nvidia-cosmos). For Nemo developers, please refer to [README_CES2025.md](README_CES2025.md).

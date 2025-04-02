@@ -2,11 +2,14 @@
     <img src="assets/nvidia-cosmos-header.png" alt="NVIDIA Cosmos Header">
 </p>
 
-| Cosmos World Foundation Model Family||||
-| ----------------- | ----------------- | ----------------- | ----------------- |
-| [Cosmos-Predict1](https://github.com/nvidia-cosmos/cosmos-predict1) | [Code](https://github.com/nvidia-cosmos/cosmos-predict1) | [Models](https://huggingface.co/collections/nvidia/cosmos-predict1-67c9d1b97678dbf7669c89a7) | [Paper](https://arxiv.org/abs/2501.03575) |
-| [Cosmos-Transfer1](https://github.com/nvidia-cosmos/cosmos-transfer1) | [Code](https://github.com/nvidia-cosmos/cosmos-transfer1) | [Models](https://huggingface.co/collections/nvidia/cosmos-transfer1-67c9d328196453be6e568d3e) | [Paper](https://arxiv.org/abs/2503.14492) |
-| [Cosmos-Reason1](https://github.com/nvidia-cosmos/cosmos-reason1) | Coming soon  | Coming soon | [Paper](https://arxiv.org/abs/2503.15558) |
+Thank everybody for the feedback. We have learned your feedback and decided to simplify our code structure to make it easier to use.
+Code is this repo **will be deprecated soon**! Please move to the new codebase that is actively developed and maintained. The list of the new
+
+| Cosmos World Foundation Model Family|||||
+| ----------------- | ----------------- | ----------------- | ----------------- |----------------- |
+| [Cosmos-Predict1](https://github.com/nvidia-cosmos/cosmos-predict1) | World Models | [Code](https://github.com/nvidia-cosmos/cosmos-predict1) | [Models](https://huggingface.co/collections/nvidia/cosmos-predict1-67c9d1b97678dbf7669c89a7) | [Paper](https://arxiv.org/abs/2501.03575) |
+| [Cosmos-Transfer1](https://github.com/nvidia-cosmos/cosmos-transfer1) | Control Nets | [Code](https://github.com/nvidia-cosmos/cosmos-transfer1) | [Models](https://huggingface.co/collections/nvidia/cosmos-transfer1-67c9d328196453be6e568d3e) | [Paper](https://arxiv.org/abs/2503.14492) |
+| [Cosmos-Reason1](https://github.com/nvidia-cosmos/cosmos-reason1) | Reasoning Models | Coming soon  | Coming soon | [Paper](https://arxiv.org/abs/2503.15558) |
 | | | |
 
 [NVIDIA Cosmos](https://www.nvidia.com/cosmos/) is a developer-first world foundation model platform designed to help Physical AI developers build their Physical AI systems better and faster. Cosmos contains

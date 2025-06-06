@@ -11,4 +11,4 @@
 
 -----------------------------------------------------------
 
-**This repository is no longer maintained and will soon be deprecated.** To view the initial release of NVIDIA Cosmos from this repository, please check out branch `archived-ces2025`.
+**This repository has been deprecated and is no longer maintained.** To view the initial release of NVIDIA Cosmos from this repository, please check out branch `archived-ces2025`.

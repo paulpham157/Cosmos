@@ -2,7 +2,7 @@
     <span style="font-size: 18px;">New GitHub page for NVIDIA Cosmos: <b><a href="https://github.com/nvidia-cosmos">https://github.com/nvidia-cosmos</a></b></span>
 </p>
 
-# Nvidia Cosmos
+# NVIDIA Cosmos
 
 Cosmos World Foundation Models come in three model types which can all be customized in post-training: [cosmos-predict](https://github.com/nvidia-cosmos/cosmos-predict1), [cosmos-transfer](https://github.com/nvidia-cosmos/cosmos-transfer1), and [cosmos-reason](https://github.com/nvidia-cosmos/cosmos-reason1):
 

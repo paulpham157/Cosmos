@@ -6,7 +6,7 @@
 />
 </p>
 <h1 align="center">
-    New GitHub page for NVIDIA Cosmos:<br>
+  New GitHub page for <a href="https://github.com/nvidia-cosmos"><b>NVIDIA Cosmos</b></a>:<br>
   <a href="https://github.com/nvidia-cosmos"><b>https://github.com/nvidia-cosmos</b></a>
 </h1>
 
